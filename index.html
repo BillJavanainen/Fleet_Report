@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Fleet Water Activity &amp; Health Report</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#060d14;color:#cde0f0;font-family:'DM Sans','Segoe UI',sans-serif;padding:28px 32px;min-height:100vh}
+::-webkit-scrollbar{width:8px;background:#060d14}
+::-webkit-scrollbar-thumb{background:#2a3f55;border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:#3a5570}
+h1{font-size:26px;font-weight:800;color:#e8f4ff;letter-spacing:-0.5px}
+.subtitle{color:#8899aa;font-size:13px;margin-top:4px}
+.header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px}
+.pills{display:flex;gap:8px}
+.pill{background:#0b1623;border:1px solid #162435;border-radius:20px;padding:5px 14px;font-size:11px;font-weight:600;letter-spacing:1px}
+.tabs{display:flex;gap:0;margin-bottom:28px;border-bottom:1px solid #162435}
+.tab{background:none;border:none;border-bottom:2px solid transparent;padding:10px 20px;font-size:13px;font-weight:600;color:#8899aa;cursor:pointer;transition:all .15s;margin-bottom:-1px;font-family:inherit;display:flex;align-items:center;gap:8px}
+.tab.active{color:#0ef0c4;border-bottom-color:#0ef0c4}
+.tab:hover:not(.active){color:#cde0f0}
+.badge{background:#7f1d1d;color:#fca5a5;font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px}
+.kpi-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:16px;margin-bottom:28px}
+.kpi-card{background:#0b1623;border:1px solid #162435;border-radius:12px;padding:20px 16px;position:relative;overflow:hidden}
+.kpi-accent{position:absolute;top:0;left:0;width:3px;height:100%;border-radius:12px 0 0 12px}
+.kpi-label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#8899aa;margin-bottom:8px}
+.kpi-value{font-size:22px;font-weight:800;color:#cde0f0;font-family:'DM Mono',monospace}
+.kpi-sub{font-size:11px;color:#8899aa;margin-top:4px}
+.panel{background:#0b1623;border:1px solid #162435;border-radius:12px;padding:24px;margin-bottom:20px}
+.panel-title{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.panel-title-bar{width:4px;height:18px;background:#0ef0c4;border-radius:2px;flex-shrink:0}
+.panel-title-text{font-family:'DM Mono',monospace;font-size:12px;letter-spacing:3px;text-transform:uppercase;color:#8899aa}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px}
+.vessel-scroll{overflow-y:scroll;max-height:300px;scrollbar-width:thin;scrollbar-color:#2a3f55 transparent}
+.vessel-row{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.vessel-id{width:80px;font-size:9px;color:#cde0f0;text-align:right;flex-shrink:0;font-family:'DM Mono',monospace}
+.vessel-bar-wrap{flex:1;background:#162435;border-radius:3px;height:12px;overflow:hidden}
+.vessel-bar{height:100%;border-radius:3px}
+.vessel-val{width:52px;font-size:9px;text-align:right;flex-shrink:0;font-family:'DM Mono',monospace}
+.vessel-date{width:72px;font-size:9px;color:#8899aa;text-align:right;flex-shrink:0;font-family:'DM Mono',monospace}
+.metric-btns{display:flex;gap:6px}
+.metric-btn{background:transparent;border:1px solid #162435;color:#8899aa;border-radius:6px;padding:4px 10px;font-size:10px;cursor:pointer;letter-spacing:1px;font-weight:600;font-family:inherit}
+.metric-btn.active-teal{background:#0ef0c422;border-color:#0ef0c4;color:#0ef0c4}
+.metric-btn.active-blue{background:#3b9eca22;border-color:#3b9eca;color:#3b9eca}
+.metric-btn.active-purple{background:#a78bfa22;border-color:#a78bfa;color:#a78bfa}
+.cat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.cat-card{background:#0b1623;border:1px solid #162435;border-radius:12px;padding:20px}
+.cat-name{font-size:16px;font-weight:800;margin-bottom:12px}
+.cat-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.cat-stat-label{font-size:9px;color:#8899aa;letter-spacing:1px;text-transform:uppercase;margin-bottom:1px}
+.cat-stat-val{font-size:14px;font-weight:700;color:#cde0f0;font-family:'DM Mono',monospace}
+.bar-track{background:#162435;border-radius:4px;height:8px;overflow:hidden;margin-bottom:6px}
+.bar-fill{height:100%;border-radius:4px}
+.legend-row{display:flex;gap:12px;font-size:10px;color:#8899aa}
+.footer{text-align:center;margin-top:24px;font-size:11px;color:#162435}
+.alert-banner{background:#1a0a0a;border:1px solid #7f1d1d44;border-radius:12px;padding:16px 24px;margin-bottom:24px;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.alert-cards{display:flex;gap:16px;margin-left:auto}
+.alert-boat-btn{background:#0b1623;border:1px solid #162435;border-radius:10px;padding:12px 18px;cursor:pointer;text-align:left;min-width:140px;font-family:inherit}
+.alert-boat-btn.active{background:#7f1d1d;border-color:#ef4444}
+.alert-boat-name{font-size:13px;font-weight:700;color:#fca5a5;margin-bottom:4px}
+.alert-boat-det{font-size:11px;color:#8899aa}
+.alert-boat-slope{font-size:11px;color:#f97316;font-weight:600}
+.alert-boat-last{font-size:10px;color:#8899aa;margin-top:2px}
+.info-bar{display:flex;gap:24px;margin-bottom:16px;padding:8px 14px;background:#0a1a2a;border-radius:8px;font-size:11px;color:#8899aa;flex-wrap:wrap}
+.scatter-legend{display:flex;gap:20px;margin-bottom:12px;font-size:11px;color:#8899aa}
+.three-info{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:20px}
+.info-panel{background:#0b1623;border:1px solid #162435;border-radius:12px;padding:20px}
+.info-row{display:flex;justify-content:space-between;border-bottom:1px solid #162435;padding-bottom:8px;margin-bottom:8px}
+.reg-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 20px}
+.reg-label{font-size:10px;color:#8899aa;letter-spacing:1px;text-transform:uppercase;margin-bottom:1px}
+.reg-val{font-size:13px;font-weight:700;font-family:'DM Mono',monospace}
+.ov-alert-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.ov-alert-card{background:#0e0808;border:1px solid #7f1d1d44;border-radius:12px;padding:20px}
+.ov-alert-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.ov-dot{width:8px;height:8px;border-radius:50%;background:#ef4444;box-shadow:0 0 6px #ef4444;flex-shrink:0}
+.ov-boat-id{font-size:14px;font-weight:700;color:#fca5a5;font-family:'DM Mono',monospace}
+.ov-slope-badge{font-size:10px;color:#f97316;font-weight:700;background:#431407;padding:2px 8px;border-radius:20px}
+.ov-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px 16px;font-size:11px}
+.ov-stat-label{color:#8899aa;letter-spacing:.5px;text-transform:uppercase;font-size:9px;margin-bottom:1px}
+.ov-stat-val{color:#cde0f0;font-weight:600;font-family:'DM Mono',monospace;font-size:11px}
+.view-chart-btn{margin-top:14px;background:none;border:1px solid #7f1d1d;color:#fca5a5;border-radius:6px;padding:5px 14px;font-size:11px;cursor:pointer;font-weight:600;letter-spacing:.5px;font-family:inherit}
+#tab-overview,#tab-alerts,#tab-icu,#tab-details{display:none}
+#tab-overview.active,#tab-alerts.active,#tab-icu.active,#tab-details.active{display:block}
+.det-fleet-section{margin-bottom:24px}
+.det-fleet-header{display:flex;align-items:center;gap:12px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #162435}
+.det-fleet-name{font-size:15px;font-weight:700;color:#cde0f0}
+.det-fleet-count{font-size:11px;color:#8899aa;background:#162435;padding:2px 10px;border-radius:20px}
+.det-table{width:100%;border-collapse:collapse;font-size:12px}
+.det-table th{text-align:left;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#8899aa;padding:6px 10px;border-bottom:1px solid #162435;font-weight:600}
+.det-table td{padding:9px 10px;border-bottom:1px solid #0d1e2e;vertical-align:top;color:#cde0f0}
+.det-table tr:hover td{background:#0d1e2e}
+.status-pill{display:inline-block;font-size:10px;font-weight:700;padding:2px 9px;border-radius:20px;letter-spacing:.5px;white-space:nowrap}
+.filter-btn{background:transparent;border:1px solid #162435;color:#8899aa;border-radius:20px;padding:4px 12px;font-size:10px;cursor:pointer;font-weight:600;font-family:inherit;letter-spacing:.5px}
+.filter-btn.on{border-color:currentColor}
+.det-note{font-size:11px;color:#8899aa;max-width:320px;line-height:1.4}
+.det-schedule{font-size:11px;color:#3b9eca;font-style:italic}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>Fleet Water Activity &amp; Health Report</h1>
+    <div class="subtitle">Mar 9, 2026</div>
+  </div>
+  <div class="pills">
+    <span class="pill" style="color:#0ef0c4">Rampages</span>
+    <span class="pill" style="color:#3b9eca">Other</span>
+    <span class="pill" style="color:#f5a623">Sims</span>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('overview')" id="tab-btn-overview">Overview</button>
+  <button class="tab" onclick="switchTab('alerts')" id="tab-btn-alerts">&#9888; Motor Alerts <span class="badge">5</span></button>
+  <button class="tab" onclick="switchTab('icu')" id="tab-btn-icu">&#9889; ICU Alerts <span class="badge">2</span></button>
+  <button class="tab" onclick="switchTab('details')" id="tab-btn-details">&#9875; Boat Details</button>
+</div>
+
+<div id="tab-overview" class="active">
+  <div class="kpi-grid" id="kpi-row"></div>
+  <div class="panel">
+    <div class="panel-title"><div class="panel-title-bar"></div><span class="panel-title-text">Monthly Water Distance &amp; Time</span></div>
+    <canvas id="monthlyChart" height="80"></canvas>
+  </div>
+  <div class="two-col">
+    <div class="panel" style="margin-bottom:0">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div class="panel-title" style="margin-bottom:0"><div class="panel-title-bar"></div><span class="panel-title-text">All Vessels (69)</span></div>
+        <div class="metric-btns">
+          <button class="metric-btn active-teal" onclick="setMetric('water_dist',this)">Total NM</button>
+          <button class="metric-btn" onclick="setMetric('water_moving_dist',this)">Moving NM</button>
+          <button class="metric-btn" onclick="setMetric('water_hrs',this)">Last Water Date</button>
+        </div>
+      </div>
+      <div class="vessel-scroll" id="vessel-list"></div>
+      <div class="legend-row" style="margin-top:10px">
+        <span><span style="color:#0ef0c4">&#9632;</span> Rampages</span>
+        <span><span style="color:#3b9eca">&#9632;</span> Other</span>
+        <span><span style="color:#f5a623">&#9632;</span> Sims</span>
+      </div>
+    </div>
+    <div class="panel" style="margin-bottom:0">
+      <div class="panel-title"><div class="panel-title-bar"></div><span class="panel-title-text">Monthly Water Hours</span></div>
+      <canvas id="hoursChart" height="200"></canvas>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:20px">
+    <!-- Boats by Status -->
+    <div class="panel" style="margin-bottom:0">
+      <div class="panel-title"><div class="panel-title-bar"></div><span class="panel-title-text">Boats by Status</span></div>
+      <div id="status-summary"></div>
+    </div>
+    <!-- Boats by Location -->
+    <div class="panel" style="margin-bottom:0">
+      <div class="panel-title"><div class="panel-title-bar"></div><span class="panel-title-text">Boats by Location</span></div>
+      <div id="location-summary"></div>
+    </div>
+  </div>
+  <!-- Motor Alerts overview -->
+  <div style="margin-top:20px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <div style="width:4px;height:18px;background:#ef4444;border-radius:2px"></div>
+      <span style="font-family:'DM Mono',monospace;font-size:12px;letter-spacing:3px;text-transform:uppercase;color:#8899aa">Motor Alerts</span>
+      <span class="badge">5 Active</span>
+    </div>
+    <div class="ov-alert-grid" style="grid-template-columns:repeat(3,1fr)" id="ov-alert-cards"></div>
+  </div>
+  <!-- ICU Alerts overview -->
+  <div style="margin-top:24px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <div style="width:4px;height:18px;background:#a78bfa;border-radius:2px"></div>
+      <span style="font-family:'DM Mono',monospace;font-size:12px;letter-spacing:3px;text-transform:uppercase;color:#8899aa">ICU Alerts</span>
+      <span class="badge" style="background:#2d1a5e;color:#d8b4fe">2 Active</span>
+    </div>
+    <div class="ov-alert-grid" id="ov-icu-cards"></div>
+  </div>
+  <div class="footer">69 vessels &middot; 4,218 hrs on water &middot; land excluded &middot; polydetails.xlsx</div>
+</div>
+
+<div id="tab-alerts">
+  <div class="alert-banner">
+    <div style="font-size:28px">&#9888;&#65039;</div>
+    <div>
+      <div style="font-size:15px;font-weight:700;color:#fca5a5;margin-bottom:2px">Motor Degradation Detected</div>
+      <div style="font-size:12px;color:#f87171aa">2 boats show elevated current draw vs. speed — indicating increased motor resistance or propulsion degradation.</div>
+    </div>
+    <div class="alert-cards" id="alert-boat-btns"></div>
+  </div>
+  <div class="panel">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+      <div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+          <div style="width:10px;height:10px;border-radius:50%;background:#f97316;box-shadow:0 0 8px #f97316"></div>
+          <span id="scatter-title" style="font-family:'DM Mono',monospace;font-size:14px;font-weight:700;color:#fff;letter-spacing:1px"></span>
+          <span style="background:#7f1d1d;color:#fca5a5;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:1px">&#9888; Degraded</span>
+        </div>
+        <div style="font-size:12px;color:#8899aa">Motor current draw vs. speed &middot; Amps vs Knots</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 24px;text-align:right" id="scatter-meta"></div>
+    </div>
+    <div class="info-bar" id="scatter-info-bar"></div>
+    <div class="scatter-legend">
+      <span><span style="color:#22d3a0">&#9679;</span> Baseline window</span>
+      <span><span style="color:#f97316">&#9679;</span> Current window</span>
+      <span><span style="color:#22d3a0;font-size:14px">&#8212;</span> Baseline regression</span>
+      <span><span style="color:#f97316;font-size:14px">&#8212;</span> Current regression</span>
+    </div>
+    <canvas id="scatterChart" height="110"></canvas>
+  </div>
+  <div class="three-info">
+    <div class="info-panel">
+      <div class="panel-title"><div class="panel-title-bar"></div><span class="panel-title-text">What This Means</span></div>
+      <p style="font-size:12px;color:#8899aa;line-height:1.7">Each point is one second of operation. X = speed (knots), Y = motor current (amps). A healthy motor has a consistent linear relationship. A <span style="color:#f97316">steeper slope</span> in the current window means more amps per knot — a sign of mechanical degradation, fouling, or increased load.</p>
+    </div>
+    <div class="info-panel">
+      <div class="panel-title"><div class="panel-title-bar"></div><span class="panel-title-text">Regression Comparison</span></div>
+      <div class="reg-grid" id="reg-grid"></div>
+    </div>
+    <div class="info-panel">
+      <div class="panel-title"><div class="panel-title-bar"></div><span class="panel-title-text">Alert Timeline</span></div>
+      <div id="alert-timeline"></div>
+    </div>
+  </div>
+  <div class="footer">Motor degradation data &middot; degraded_boat_R135/R109/R108/R103/R101.csv</div>
+</div>
+
+<div id="tab-icu">
+  <div class="alert-banner" style="border-color:#a78bfa44;background:#0d0a1a">
+    <div style="font-size:28px">&#9889;</div>
+    <div>
+      <div style="font-size:15px;font-weight:700;color:#d8b4fe;margin-bottom:2px">ICU Voltage Degradation Detected</div>
+      <div style="font-size:12px;color:#a78bfaaa">2 boats show ICU voltage dropping to 0V during operation — indicating ICU failure or power loss events.</div>
+    </div>
+    <div class="alert-cards" id="icu-boat-btns"></div>
+  </div>
+
+  <div class="panel">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+      <div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+          <div style="width:10px;height:10px;border-radius:50%;background:#a78bfa;box-shadow:0 0 8px #a78bfa"></div>
+          <span id="icu-scatter-title" style="font-family:'DM Mono',monospace;font-size:14px;font-weight:700;color:#fff;letter-spacing:1px"></span>
+          <span style="background:#2d1a5e;color:#d8b4fe;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:1px">&#9889; ICU Degraded</span>
+        </div>
+        <div style="font-size:12px;color:#8899aa">ICU voltage vs. speed &middot; Volts vs Knots</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 24px;text-align:right" id="icu-scatter-meta"></div>
+    </div>
+    <div class="info-bar" id="icu-info-bar" style="border-color:#a78bfa22"></div>
+    <div class="scatter-legend">
+      <span><span style="color:#22d3a0">&#9679;</span> Baseline window (stable voltage)</span>
+      <span><span style="color:#a78bfa">&#9679;</span> Current window (voltage drops)</span>
+    </div>
+    <canvas id="icuScatterChart" height="110"></canvas>
+  </div>
+
+  <div class="three-info">
+    <div class="info-panel">
+      <div class="panel-title"><div class="panel-title-bar" style="background:#a78bfa"></div><span class="panel-title-text">What This Means</span></div>
+      <p style="font-size:12px;color:#8899aa;line-height:1.7">Each point represents one second of operation. X = speed (knots), Y = ICU battery voltage. A healthy ICU maintains steady voltage (~48–52V) across all speeds. <span style="color:#a78bfa">Drops to 0V</span> in the current window indicate ICU power failures or disconnects — a sign of ICU hardware degradation.</p>
+    </div>
+    <div class="info-panel">
+      <div class="panel-title"><div class="panel-title-bar" style="background:#a78bfa"></div><span class="panel-title-text">Variability Comparison</span></div>
+      <div class="reg-grid" id="icu-var-grid"></div>
+    </div>
+    <div class="info-panel">
+      <div class="panel-title"><div class="panel-title-bar" style="background:#a78bfa"></div><span class="panel-title-text">Alert Timeline</span></div>
+      <div id="icu-timeline"></div>
+    </div>
+  </div>
+  <div class="footer">ICU degradation data &middot; ICU_degraded_boat_chart_points.csv</div>
+</div>
+
+<div id="tab-details">
+  <div id="fleet-groups"></div>
+  <div class="footer">Asset data &middot; airtable_export.xlsx</div>
+</div>
+
+<script>
+var MONTHLY=[
+  {month:"Jun '25",water_dist:36.7,water_moving_dist:24.1,water_hrs:50.8},
+  {month:"Jul '25",water_dist:198.3,water_moving_dist:141.7,water_hrs:242.3},
+  {month:"Aug '25",water_dist:556.7,water_moving_dist:416.6,water_hrs:468.5},
+  {month:"Sep '25",water_dist:1128.0,water_moving_dist:934.4,water_hrs:696.3},
+  {month:"Oct '25",water_dist:456.8,water_moving_dist:331.0,water_hrs:581.4},
+  {month:"Nov '25",water_dist:181.8,water_moving_dist:137.6,water_hrs:754.0},
+  {month:"Dec '25",water_dist:348.2,water_moving_dist:283.6,water_hrs:289.1},
+  {month:"Jan '26",water_dist:560.4,water_moving_dist:449.9,water_hrs:588.2},
+  {month:"Feb '26",water_dist:362.1,water_moving_dist:155.6,water_hrs:290.5},
+  {month:"Mar '26",water_dist:259.6,water_moving_dist:191.5,water_hrs:253.9}
+];
+
+var ALL_BOATS=[
+  {id:"108",category:"Rampages",water_dist:293.6,water_moving_dist:110.6,water_hrs:226.8,last_water:"2026-03-13"},
+  {id:"101",category:"Rampages",water_dist:176.2,water_moving_dist:150.0,water_hrs:90.2,last_water:"2026-03-10"},
+  {id:"106",category:"Rampages",water_dist:167.1,water_moving_dist:142.9,water_hrs:88.8,last_water:"2026-01-23"},
+  {id:"110",category:"Rampages",water_dist:160.9,water_moving_dist:130.5,water_hrs:124.5,last_water:"2026-03-10"},
+  {id:"109",category:"Rampages",water_dist:146.1,water_moving_dist:116.6,water_hrs:115.1,last_water:"2026-03-04"},
+  {id:"15",category:"Rampages",water_dist:145.1,water_moving_dist:116.0,water_hrs:64.5,last_water:"2026-01-14"},
+  {id:"119",category:"Rampages",water_dist:143.2,water_moving_dist:112.7,water_hrs:111.1,last_water:"2025-12-12"},
+  {id:"122",category:"Rampages",water_dist:141.2,water_moving_dist:107.6,water_hrs:344.7,last_water:"2026-03-13"},
+  {id:"121",category:"Rampages",water_dist:136.1,water_moving_dist:111.4,water_hrs:125.6,last_water:"2026-03-11"},
+  {id:"112",category:"Rampages",water_dist:131.6,water_moving_dist:92.7,water_hrs:149.2,last_water:"2026-03-05"},
+  {id:"117",category:"Rampages",water_dist:131.0,water_moving_dist:97.3,water_hrs:112.2,last_water:"2026-03-05"},
+  {id:"114",category:"Rampages",water_dist:129.2,water_moving_dist:97.9,water_hrs:489.3,last_water:"2026-03-13"},
+  {id:"102",category:"Rampages",water_dist:117.2,water_moving_dist:102.4,water_hrs:59.3,last_water:"2026-03-10"},
+  {id:"105",category:"Rampages",water_dist:116.4,water_moving_dist:87.5,water_hrs:213.0,last_water:"2026-03-02"},
+  {id:"115",category:"Rampages",water_dist:112.0,water_moving_dist:87.8,water_hrs:97.1,last_water:"2026-02-12"},
+  {id:"104",category:"Rampages",water_dist:110.0,water_moving_dist:82.0,water_hrs:107.8,last_water:"2026-03-04"},
+  {id:"120",category:"Rampages",water_dist:108.5,water_moving_dist:90.2,water_hrs:77.9,last_water:"2026-03-11"},
+  {id:"103",category:"Rampages",water_dist:104.8,water_moving_dist:89.1,water_hrs:58.8,last_water:"2026-03-05"},
+  {id:"111",category:"Rampages",water_dist:104.0,water_moving_dist:81.6,water_hrs:63.8,last_water:"2025-10-15"},
+  {id:"124",category:"Rampages",water_dist:103.6,water_moving_dist:80.7,water_hrs:106.6,last_water:"2026-03-06"},
+  {id:"34",category:"Rampages",water_dist:103.2,water_moving_dist:88.5,water_hrs:50.5,last_water:"2025-11-05"},
+  {id:"113",category:"Rampages",water_dist:103.0,water_moving_dist:55.0,water_hrs:107.2,last_water:"2026-03-13"},
+  {id:"123",category:"Rampages",water_dist:98.3,water_moving_dist:80.2,water_hrs:72.1,last_water:"2026-02-21"},
+  {id:"118",category:"Rampages",water_dist:95.7,water_moving_dist:64.1,water_hrs:194.3,last_water:"2025-12-11"},
+  {id:"seahound_1",category:"Sims",water_dist:77.8,water_moving_dist:73.6,water_hrs:44.4,last_water:"2026-01-20"},
+  {id:"107",category:"Rampages",water_dist:72.4,water_moving_dist:62.2,water_hrs:44.2,last_water:"2025-09-13"},
+  {id:"116",category:"Rampages",water_dist:63.3,water_moving_dist:49.1,water_hrs:57.1,last_water:"2026-02-05"},
+  {id:"100",category:"Rampages",water_dist:58.9,water_moving_dist:39.1,water_hrs:120.1,last_water:"2026-01-14"},
+  {id:"30",category:"Rampages",water_dist:50.6,water_moving_dist:32.7,water_hrs:54.1,last_water:"2026-03-04"},
+  {id:"35",category:"Rampages",water_dist:46.0,water_moving_dist:33.0,water_hrs:36.8,last_water:"2026-01-21"},
+  {id:"4",category:"Rampages",water_dist:44.8,water_moving_dist:43.1,water_hrs:11.2,last_water:"2025-09-18"},
+  {id:"Atlas",category:"Other",water_dist:43.8,water_moving_dist:38.8,water_hrs:21.4,last_water:"2026-03-09"},
+  {id:"25",category:"Rampages",water_dist:37.0,water_moving_dist:25.8,water_hrs:27.4,last_water:"2026-02-12"},
+  {id:"14",category:"Rampages",water_dist:35.6,water_moving_dist:32.2,water_hrs:15.9,last_water:"2025-09-07"},
+  {id:"tideman-1",category:"Other",water_dist:32.7,water_moving_dist:23.0,water_hrs:24.4,last_water:"2026-03-13"},
+  {id:"SB-36",category:"Other",water_dist:32.3,water_moving_dist:27.7,water_hrs:9.8,last_water:"2026-01-23"},
+  {id:"125",category:"Rampages",water_dist:31.6,water_moving_dist:20.8,water_hrs:52.6,last_water:"2025-12-11"},
+  {id:"37",category:"Rampages",water_dist:26.6,water_moving_dist:17.5,water_hrs:29.3,last_water:"2025-07-10"},
+  {id:"mcrib",category:"Other",water_dist:19.1,water_moving_dist:15.3,water_hrs:12.1,last_water:"2026-03-13"},
+  {id:"39",category:"Rampages",water_dist:18.2,water_moving_dist:12.1,water_hrs:13.3,last_water:"2025-07-10"},
+  {id:"Friendly",category:"Other",water_dist:17.9,water_moving_dist:13.0,water_hrs:7.4,last_water:"2026-03-10"},
+  {id:"128",category:"Rampages",water_dist:17.9,water_moving_dist:8.7,water_hrs:26.6,last_water:"2025-12-11"},
+  {id:"129",category:"Rampages",water_dist:16.7,water_moving_dist:11.6,water_hrs:22.7,last_water:"2025-12-11"},
+  {id:"126",category:"Rampages",water_dist:15.9,water_moving_dist:9.0,water_hrs:18.7,last_water:"2025-12-11"},
+  {id:"135",category:"Rampages",water_dist:14.8,water_moving_dist:11.5,water_hrs:23.0,last_water:"2026-03-13"},
+  {id:"134",category:"Rampages",water_dist:13.0,water_moving_dist:10.3,water_hrs:15.8,last_water:"2026-03-11"},
+  {id:"136",category:"Rampages",water_dist:12.7,water_moving_dist:10.4,water_hrs:16.5,last_water:"2026-03-05"},
+  {id:"130",category:"Rampages",water_dist:12.3,water_moving_dist:8.7,water_hrs:16.5,last_water:"2025-12-11"},
+  {id:"36",category:"Rampages",water_dist:10.8,water_moving_dist:7.7,water_hrs:7.7,last_water:"2025-07-31"},
+  {id:"Hostile",category:"Other",water_dist:10.3,water_moving_dist:7.0,water_hrs:5.0,last_water:"2026-03-10"},
+  {id:"42",category:"Rampages",water_dist:9.1,water_moving_dist:6.4,water_hrs:11.1,last_water:"2025-06-27"},
+  {id:"11",category:"Rampages",water_dist:8.9,water_moving_dist:7.7,water_hrs:7.8,last_water:"2025-09-26"},
+  {id:"127",category:"Rampages",water_dist:8.4,water_moving_dist:6.9,water_hrs:73.3,last_water:"2025-12-09"},
+  {id:"38",category:"Rampages",water_dist:7.9,water_moving_dist:3.6,water_hrs:47.3,last_water:"2025-09-09"},
+  {id:"139",category:"Rampages",water_dist:7.6,water_moving_dist:3.8,water_hrs:13.9,last_water:"2026-03-13"},
+  {id:"jesse-1",category:"Other",water_dist:7.0,water_moving_dist:4.8,water_hrs:6.9,last_water:"2026-03-13"},
+  {id:"137",category:"Rampages",water_dist:5.7,water_moving_dist:2.5,water_hrs:15.7,last_water:"2026-03-13"},
+  {id:"138",category:"Rampages",water_dist:4.7,water_moving_dist:2.5,water_hrs:22.2,last_water:"2026-03-13"},
+  {id:"252",category:"Rampages",water_dist:3.7,water_moving_dist:3.0,water_hrs:2.1,last_water:"2025-09-09"},
+  {id:"140",category:"Rampages",water_dist:3.4,water_moving_dist:0.9,water_hrs:8.7,last_water:"2026-03-13"},
+  {id:"test",category:"Sims",water_dist:3.1,water_moving_dist:0.6,water_hrs:6.2,last_water:"2025-09-10"},
+  {id:"41",category:"Rampages",water_dist:3.0,water_moving_dist:1.1,water_hrs:5.0,last_water:"2025-06-26"},
+  {id:"plastic-1",category:"Rampages",water_dist:2.4,water_moving_dist:1.4,water_hrs:4.7,last_water:"2026-02-17"},
+  {id:"131",category:"Rampages",water_dist:1.4,water_moving_dist:0.9,water_hrs:1.7,last_water:"2025-12-18"},
+  {id:"133",category:"Rampages",water_dist:0.8,water_moving_dist:0.4,water_hrs:1.3,last_water:"2025-12-18"},
+  {id:"132",category:"Rampages",water_dist:0.3,water_moving_dist:0.1,water_hrs:0.9,last_water:"2025-12-18"},
+  {id:"141",category:"Rampages",water_dist:0.3,water_moving_dist:0.0,water_hrs:0.7,last_water:"2026-03-09"},
+  {id:"sim-local",category:"Sims",water_dist:0.0,water_moving_dist:0.0,water_hrs:4.3,last_water:"2025-10-17"},
+  {id:"full-rampage-HIL-1",category:"Sims",water_dist:0.0,water_moving_dist:0.0,water_hrs:0.3,last_water:"2025-10-28"}
+];
+
+var CATEGORIES=[
+  {name:"Rampages",water_dist:3844.7,water_moving_dist:2862.3,moving:17012,total_water:48921,water_hrs:4076.2},
+  {name:"Other",water_dist:163.1,water_moving_dist:129.6,moving:493,total_water:1047,water_hrs:87.0},
+  {name:"Sims",water_dist:81.0,water_moving_dist:74.2,moving:478,total_water:666,water_hrs:55.3}
+];
+
+var ALERT_DATA={
+  R135:{
+    meta:{detected:"2026-03-11",baseline_source:"First mission days",baseline_start:"2026-01-08",baseline_end:"2026-01-14",last_active:"2026-03-13",run_hours:21.6,ilmor_replacement:"No record",m_base:1.005361,c_base:-2.632607,m_curr:1.20428,c_curr:-3.495031},
+    x_min:2.0,x_max:16.94,
+    baseline:[[2.237,1.1],[14.953,17.003],[5.185,1.17],[4.976,2.752],[14.749,15.662],[14.836,12.025],[6.252,3.252],[10.035,6.777],[10.001,4.907],[7.93,4.895],[7.998,3.485],[4.962,2.652],[4.962,3.365],[2.755,5.0],[2.949,0.738],[3.022,0.113],[8.57,4.55],[2.954,0.243],[3.119,0.535],[2.955,0.253],[3.06,0.405],[2.963,0.355],[2.914,0.366],[2.939,0.265],[2.963,0.31],[2.939,0.24],[3.056,0.44],[2.944,0.36],[2.886,0.36],[2.973,0.273],[2.891,0.258],[2.905,0.287],[2.968,0.393],[2.905,0.355],[3.065,0.388],[2.983,0.37],[2.973,0.3],[2.857,0.282],[2.963,0.278],[2.828,0.335],[2.876,0.437],[3.23,0.465],[2.978,0.242],[3.516,0.51],[2.9,0.35],[2.905,0.268],[3.002,0.352],[2.968,0.367],[3.152,0.465],[2.958,0.357],[3.012,0.315],[3.046,0.397],[3.089,0.378],[2.968,0.357],[2.997,0.385],[3.075,0.362],[2.997,0.36],[3.085,0.465],[3.022,0.28],[2.925,0.4],[3.007,0.362],[2.895,0.393],[3.094,0.372],[2.997,0.295],[3.085,0.593],[2.934,0.128],[3.007,0.182],[3.298,0.842],[2.866,0.467],[2.944,0.522],[2.963,0.51],[2.944,0.295],[3.085,0.18],[3.031,0.217],[2.895,0.22],[2.992,0.253],[2.949,0.42],[2.027,0.698],[2.983,0.28],[2.92,0.347],[2.939,0.297],[2.891,0.307],[2.861,0.345],[2.91,0.445],[2.9,0.297],[2.866,0.39],[3.075,0.412],[2.876,0.35],[3.133,0.472],[3.051,0.47],[2.958,0.345],[2.963,0.447],[2.92,0.263],[2.988,0.325],[2.842,0.412],[3.056,0.343],[2.978,0.335],[3.046,0.312],[3.017,0.395],[2.949,0.338],[2.976,0.478],[2.973,0.323],[3.085,0.465],[3.085,0.28],[3.031,0.315],[2.857,0.365],[3.017,0.642],[2.997,0.43],[3.026,0.54],[3.264,0.392],[3.23,0.49],[2.905,0.782],[3.002,0.22],[3.085,0.305],[3.211,0.375],[3.041,0.3],[3.135,0.708],[3.031,0.212],[2.983,0.253],[2.936,0.537],[3.23,0.323],[3.246,0.52],[2.963,0.535],[3.07,0.672],[3.022,0.192],[3.012,0.593],[3.283,0.365],[2.958,0.415],[3.046,0.405],[3.443,0.785],[3.012,0.393],[3.196,0.522],[3.104,0.49],[3.06,0.575],[3.123,0.37],[3.046,0.295],[3.177,0.442],[2.857,0.422],[2.988,0.532],[2.963,0.345],[2.983,0.445],[3.22,0.623],[3.051,0.715],[3.036,0.362],[3.216,0.412],[3.026,0.455],[3.075,0.54],[3.012,0.297],[3.264,1.048],[3.046,0.393],[3.007,0.412],[3.012,0.305],[3.075,0.34],[2.897,0.117],[2.939,0.35],[2.891,0.335],[2.871,0.465],[3.051,0.397],[2.954,0.438],[2.944,0.37],[2.91,0.297],[2.934,0.36],[2.852,0.287],[2.958,0.26],[3.041,0.414],[3.017,0.505],[3.041,0.417],[2.992,0.632],[2.92,0.282],[2.866,0.343],[2.949,0.2],[2.973,0.185],[2.915,0.31],[2.929,0.532],[2.968,0.605],[2.823,0.185],[2.949,0.212],[2.973,0.182],[2.886,0.192],[3.094,0.367],[2.891,0.635],[2.963,0.458],[2.92,0.52],[3.046,0.35],[2.983,0.263],[2.992,0.253],[2.925,0.255],[2.929,0.375],[3.08,0.525],[2.973,0.452],[2.881,0.325],[2.915,0.202],[2.881,0.212],[5.282,2.118],[2.832,0.357],[3.206,0.502],[4.021,0.82],[3.177,0.547],[3.259,0.472],[4.147,0.895],[4.501,1.875]],
+    current:[[3.327,5.17],[3.211,0.37],[4.549,1.975],[5.078,1.913],[5.097,1.965],[4.569,1.882],[4.389,1.83],[4.418,1.952],[5.228,1.855],[4.641,1.965],[4.438,1.867],[4.438,1.934],[4.85,1.927],[2.886,0.608],[4.378,1.933],[4.721,1.76],[5.29,1.765],[5.287,2.842],[5.413,2.745],[6.174,2.825],[5.398,2.703],[5.689,2.788],[5.805,2.667],[4.501,1.653],[5.694,3.562],[9.322,5.688],[7.071,3.792],[7.348,3.79],[7.139,3.855],[6.955,3.822],[8.725,4.835],[7.93,4.745],[8.885,4.888],[8.056,4.855],[7.319,5.162],[7.935,5.045],[8.575,4.923],[4.884,4.027],[11.732,8.592],[12.741,9.345],[2.711,1.36],[9.191,7.845],[10.782,8.227],[11.174,7.515],[10.088,8.257],[10.141,8.03],[10.437,8.22],[10.849,8.2],[11.436,7.795],[11.131,8.262],[10.961,8.162],[10.704,8.057],[10.52,8.322],[5.049,2.353],[3.671,0.83],[6.218,1.567],[2.764,1.317],[3.87,1.113],[2.658,1.177],[5.054,1.442],[3.909,0.672],[4.912,2.468],[4.613,2.237],[3.557,0.723],[2.556,0.005],[4.874,1.735],[11.354,10.73],[3.283,0.175],[5.02,2.342],[5.029,1.9],[5.054,3.077],[3.128,0.625],[5.607,3.808],[3.099,0.382],[7.818,4.505],[7.969,4.175],[8.099,4.995],[5.068,2.967],[4.942,3.485],[5.102,3.247],[5.432,3.015],[2.852,0.482],[5.083,3.158],[3.089,0.502],[4.559,1.183],[2.895,0.465],[5.126,3.66],[4.947,1.98],[4.612,1.725],[3.482,0.627],[4.918,3.428],[2.847,0.398],[3.468,0.578],[2.997,0.187],[4.995,2.44],[2.915,0.855],[3.492,0.95],[3.051,0.605],[4.234,1.167],[2.134,0.985],[3.574,0.922],[3.642,1.175],[3.642,0.625],[4.971,2.66],[5.107,3.215],[5.034,3.112],[4.942,4.058],[5.267,3.282],[4.263,1.427],[9.278,0.405],[13.401,14.517],[3.177,0.273],[3.089,0.202],[4.879,2.48],[4.971,2.743],[9.957,6.928],[2.042,1.222],[3.022,0.197],[3.056,0.177],[2.992,0.175],[2.954,0.142],[2.954,0.033],[4.952,0.975],[7.076,4.572],[4.098,0.485],[4.287,1.922],[3.012,0.315],[5.796,1.975],[2.328,0.627],[5.015,3.428],[4.986,3.625],[5.844,1.982],[3.836,1.977],[4.704,2.038],[3.846,2.037],[3.458,2.007],[3.109,1.045],[5.936,4.036],[7.283,4.922],[9.176,6.04],[12.067,10.4],[4.147,1.91],[7.134,5.49],[9.461,6.613],[9.008,6.943],[8.686,7.37],[8.795,7.227],[5.288,4.07],[6.557,4.053],[5.781,3.506],[6.542,3.762],[5.849,3.455],[6.004,3.66],[9.511,5.665],[6.892,4.165],[5.932,3.303],[7.26,4.22],[7.377,3.73],[14.725,10.225],[5.185,4.345],[4.986,2.53],[6.184,3.935],[5.713,2.842],[2.11,0.828],[7.275,4.95],[5.757,3.262],[5.519,3.362],[5.946,3.42],[14.501,15.932],[3.094,0.453],[3.138,0.424],[14.104,16.265],[5.713,3.562],[2.939,0.75],[3.686,0.677],[5.684,3.025],[6.329,3.72],[5.652,2.777],[10.554,8.725],[5.057,2.443],[4.69,6.047],[14.632,16.43],[13.89,16.983],[13.978,16.698],[7.357,4.945],[11.916,12.453],[12.852,10.635],[13.134,14.85],[12.309,14.345],[13.944,16.125],[14.594,16.632],[13.192,17.075],[14.681,16.652],[13.997,16.86],[13.658,15.175],[13.837,16.275],[2.313,3.652],[9.074,7.802],[14.957,15.955],[4.787,2.547],[2.973,1.06],[2.832,0.472],[2.158,0.927]]
+  },
+  R109:{
+    meta:{detected:"2025-08-27",baseline_source:"First mission days",baseline_start:"2025-08-06",baseline_end:"2025-08-25",last_active:"2026-03-17",run_hours:64.4,ilmor_replacement:"2025-08-19",m_base:0.922631,c_base:-2.198806,m_curr:1.155373,c_curr:-2.94869},
+    x_min:2.0,x_max:15.49,
+    baseline:[[2.575,1.272],[4.278,1.177],[10.136,10.562],[11.63,9.457],[11.713,9.17],[11.819,8.957],[11.659,9.637],[12.072,9.012],[12.096,8.95],[6.227,2.902],[6.14,4.138],[6.193,3.392],[5.941,3.722],[6.572,3.639],[6.664,3.315],[6.235,2.578],[5.786,3.485],[6.397,3.805],[6.247,3.397],[6.155,3.552],[7.144,4.047],[6.368,3.142],[7.372,4.03],[7.222,2.848],[6.916,4.41],[6.766,3.61],[7.648,4.718],[7.857,5.537],[6.189,4.21],[5.442,2.868],[6.926,3.69],[7.377,4.388],[4.564,1.425],[4.511,1.615],[3.051,0.325],[2.915,0.305],[4.321,1.502],[9.574,5.915],[9.933,6.21],[9.031,5.075],[9.569,6.607],[10.083,7.207],[10.175,7.335],[9.535,4.987],[8.706,5.567],[8.696,5.433],[7.682,3.85],[9.288,6.155],[8.875,6.12],[8.953,6.04],[9.031,6.697],[8.977,6.395],[4.195,2.092],[7.978,4.98],[8.167,3.642],[7.959,3.672],[8.124,4.862],[7.915,5.688],[8.39,4.38],[8.172,5.205],[8.541,4.975],[7.29,4.393],[7.518,5.107],[7.008,4.5],[7.813,4.697],[6.775,4.657],[7.387,6.447],[7.256,4.772],[7.61,4.915],[7.459,5.503],[5.388,0.725],[7.173,3.255],[6.48,2.765],[6.038,4.12],[5.883,2.49],[6.135,2.175],[6.15,3.44],[6.009,3.118],[2.687,0.152],[5.359,4.798],[8.138,6.242],[5.922,3.737],[3.051,1.117],[4.021,0.85],[4.093,1.393],[4.268,1.647],[3.948,0.858],[4.496,0.945],[3.953,0.848],[4.127,0.787],[4.055,0.892],[4.064,0.845],[4.122,1.327],[3.972,1.017],[5.442,2.795],[3.051,0.237],[4.069,0.708],[4.016,0.62],[4.016,0.807],[4.035,0.762],[4.268,1.718],[3.497,0.92],[2.813,0.9],[3.638,1.042],[3.812,1.095],[3.104,0.535],[3.007,0.282],[2.469,0.49],[3.851,1.072],[2.963,0.325],[5.151,3.28],[4.976,2.74],[4.283,1.127],[3.012,0.517],[3.924,1.37],[3.977,1.827],[3.836,1.07],[3.948,0.698],[2.527,1.748],[4.409,1.792],[3.633,1.205],[3.899,1.357],[2.721,0.412],[2.803,0.57],[2.939,0.6],[3.754,0.598],[2.163,0.255],[2.886,0.378],[2.978,0.385],[3.046,0.367],[3.162,0.615],[3.953,1.647],[4.147,1.317],[4.229,1.895],[4.472,1.837],[3.356,0.723],[3.807,1.282],[3.938,1.052],[4.011,1.073],[3.71,1.097],[3.667,1.038],[4.224,1.893],[4.903,2.853],[3.773,1.202],[2.764,0.858],[2.595,0.03],[3.148,1.15],[3.259,0.83],[2.895,1.198],[3.206,1.322],[3.395,1.975],[2.934,0.59],[2.444,1.317],[3.982,1.288],[3.196,0.83],[3.473,0.43],[3.628,1.057],[3.099,0.762],[4.181,2.325],[4.19,0.635],[5.282,2.36],[4.515,1.475],[4.894,2.405],[2.585,0.412],[3.152,1.157],[5.243,1.755],[4.287,1.353],[4.86,0.723],[3.778,1.107],[3.216,1.573],[3.652,1.715],[3.705,1.11],[3.007,0.527],[3.182,0.522],[2.716,1.222],[2.735,0.618],[3.279,1.312],[2.891,0.445],[3.128,0.998],[4.457,1.867],[4.52,2.502],[4.607,1.41],[2.595,0.89],[3.919,1.492],[3.972,1.198],[3.613,1.205],[4.108,2.388],[3.831,1.515],[4.006,1.845],[2.995,1.436],[2.671,0.563],[2.081,0.388],[6.868,4.893],[7.251,5.12],[7.26,2.515],[6.678,4.935],[7.508,2.685],[7.328,3.952],[7.328,4.315],[7.634,4.232],[3.342,0.338],[6.669,4.6]],
+    current:[[2.721,1.75],[4.35,1.97],[7.362,7.195],[9.006,6.672],[3.628,0.665],[2.992,0.497],[3.123,0.455],[2.915,0.442],[2.968,0.463],[3.657,0.87],[4.263,3.665],[2.003,0.168],[3.308,0.637],[2.925,0.472],[2.939,0.417],[2.983,0.474],[2.852,0.79],[3.065,1.788],[2.309,0.192],[3.07,0.415],[2.929,0.382],[3.211,0.302],[2.207,0.092],[3.38,0.635],[3.089,0.438],[2.925,0.477],[3.288,1.087],[3.114,0.525],[3.167,0.407],[2.871,0.3],[3.303,0.29],[3.152,0.412],[3.022,0.713],[3.133,0.573],[3.07,0.426],[3.089,0.487],[2.774,1.51],[3.468,0.68],[2.847,0.43],[2.769,1.127],[3.497,1.048],[3.254,0.514],[3.293,0.37],[3.078,0.395],[3.046,0.51],[2.983,0.573],[2.624,1.232],[3.162,0.407],[2.76,0.897],[3.046,0.438],[3.075,0.465],[3.72,0.578],[2.658,0.595],[3.201,0.593],[2.944,0.41],[2.837,0.385],[2.119,0.302],[2.74,1.353],[3.065,0.43],[3.225,0.573],[3.031,0.667],[3.012,0.43],[2.755,0.237],[3.71,1.288],[3.104,0.403],[3.031,0.475],[3.172,0.458],[3.017,0.645],[3.036,0.832],[3.007,0.34],[3.235,0.645],[3.099,0.482],[2.939,0.367],[2.997,0.387],[2.973,0.623],[3.07,0.497],[3.216,0.295],[3.245,0.578],[3.647,0.76],[3.031,0.527],[3.056,0.532],[3.002,0.44],[3.094,0.333],[3.031,0.477],[3.051,0.485],[3.24,0.458],[3.303,0.662],[3.473,0.81],[2.915,0.705],[2.944,0.472],[2.823,0.502],[2.978,0.445],[3.152,0.42],[3.031,0.718],[3.06,0.307],[3.24,0.422],[3.487,0.68],[3.303,0.507],[3.08,0.598],[3.167,0.53],[3.211,0.405],[3.07,0.517],[2.818,0.453],[2.706,0.505],[3.104,0.61],[3.216,0.475],[3.06,0.49],[2.886,0.492],[2.997,0.302],[3.128,0.43],[3.08,0.378],[3.836,1.052],[2.905,0.6],[3.172,0.562],[2.954,0.38],[3.317,0.615],[3.429,1.475],[3.24,0.757],[3.371,1.39],[3.056,0.547],[4.69,1.972],[11.218,17.085],[8.104,5.38],[7.197,4.312],[6.78,5.718],[7.139,5.867],[7.028,5.697],[7.265,3.77],[6.999,5.378],[6.863,5.138],[6.848,4.36],[7.047,4.735],[6.979,5.428],[7.062,4.245],[7.037,4.985],[7.071,4.31],[2.876,0.205],[12.188,12.182],[2.711,0.547],[2.653,0.775],[3.652,2.86],[6.135,5.42],[5.18,2.697],[4.452,2.9],[3.531,0.343],[6.654,3.908],[5.951,3.922],[5.854,4.27],[2.44,1.41],[2.973,0.595],[3.623,0.427],[3.322,0.527],[3.104,0.257],[2.944,0.708],[2.891,0.785],[3.196,1.28],[2.803,0.672],[2.983,0.932],[3.046,0.762],[2.789,0.47],[2.9,0.61],[3.119,0.765],[2.512,0.922],[3.696,2.933],[5.951,4.115],[3.119,0.365],[6.271,4.135],[5.728,5.433],[5.073,1.897],[6.378,3.83],[5.422,4.42],[3.885,1.558],[5.621,4.327],[6.116,3.55],[5.932,2.82],[4.646,0.158],[5.767,3.04],[5.922,4.728],[3.477,0.318],[5.893,4.455],[6.009,5.407],[6.038,3.97],[5.859,6.94],[2.895,0.713],[6.567,3.76],[6.106,3.495],[3.075,0.525],[3.123,0.41],[2.852,0.53],[6.518,5.6],[5.296,3.243],[5.379,3.493],[5.107,2.053],[5.471,4.082],[5.956,2.618],[4.937,2.417],[4.894,2.828],[5.175,2.652],[4.898,3.105],[4.675,2.835],[4.661,3.44],[4.923,2.723],[4.268,1.025],[4.026,0.527],[3.977,0.743],[4.03,1.045],[8.9,8.182]]
+  },
+  R108:{
+    meta:{detected:"2025-07-29",baseline_source:"First mission days",baseline_start:"2025-07-02",baseline_end:"2025-07-07",last_active:"2026-03-13",run_hours:75.6,ilmor_replacement:"No record",m_base:0.702441,c_base:-1.503432,m_curr:0.938151,c_curr:-2.499601},
+    x_min:2.0,x_max:15.7,
+    baseline:[[3.012,0.135],[3.41,0.27],[3.073,0.27],[3.089,0.27],[3.085,0.27],[3.023,0.27],[2.968,0.27],[2.988,0.27],[8.89,0.27],[2.168,0.27],[14.594,0.27],[12.319,0.27],[2.134,0.27],[13.968,0.27],[3.342,0.27],[5.956,0.27],[6.955,0.27],[6.945,0.27],[7.154,0.27],[3.996,0.27],[7.818,0.27],[4.321,0.665],[5.194,2.07],[2.934,0.905],[2.9,0.225],[2.895,0.21],[3.439,0.603],[2.963,0.338],[8.4,1.775],[7.726,3.703],[8.114,4.847],[8.846,4.57],[9.661,5.188],[4.889,0.978],[8.323,3.95],[4.763,0.975],[14.225,9.977],[4.321,1.333],[7.852,3.342],[7.862,3.87],[6.567,3.062],[6.766,3.453],[8.036,3.94],[7.813,2.92],[2.949,0.455],[3.017,0.44],[2.706,0.393],[5.999,2.135],[3.342,0.45],[2.823,0.177],[2.886,0.395],[2.05,0.047],[2.881,0.463],[3.046,0.224],[4.52,0.87],[4.598,1.52],[8.056,5.407],[6.465,2.575],[3.012,0.228],[6.101,2.425],[3.114,0.38],[3.41,0.49],[3.298,0.552],[2.91,0.393],[2.978,0.275],[3.177,0.542],[3.022,0.465],[2.954,0.265],[3.162,0.39],[3.211,0.547],[6.727,2.43],[6.412,2.132],[5.738,2.65],[5.961,2.565],[8.701,9.387],[7.207,3.455],[7.401,3.732],[6.606,3.075],[7.236,3.05],[7.086,3.62],[6.281,3.0],[7.256,3.413],[6.523,2.695],[7.231,3.425],[7.551,4.205],[6.979,3.42],[11.131,5.777],[2.857,1.225],[4.894,2.855],[5.592,3.16],[5.854,2.33],[4.811,1.895],[5.83,2.47],[6.174,2.335],[5.073,1.65],[5.708,3.37],[5.917,2.665],[5.82,2.46],[6.429,2.768],[5.796,2.87],[6.173,2.906],[3.885,0.67],[3.953,0.95],[3.779,0.434],[4.229,1.045],[4.016,0.632],[7.26,4.205],[7.217,4.353],[7.207,3.84],[9.239,5.085],[8.832,4.535],[9.622,3.815],[8.051,4.26],[9.259,3.942],[7.537,1.83],[8.036,4.665],[8.007,4.675],[7.847,4.707],[7.324,4.125],[7.561,4.345],[6.979,2.715],[7.411,3.325],[4.869,1.015],[2.561,0.205],[5.122,4.7],[2.304,2.448],[2.022,0.018],[5.825,3.244],[9.875,5.857],[9.307,7.09],[3.754,1.105],[4.113,1.502],[4.026,1.45],[4.016,0.873],[3.822,0.677],[3.89,0.805],[3.885,0.833],[4.093,1.103],[7.527,5.94],[6.378,3.22],[2.682,0.005],[2.09,0.01],[3.574,0.69],[3.788,1.175],[8.788,4.105],[10.418,5.152],[10.098,4.957],[6.916,2.62],[11.771,8.12],[9.011,5.725],[8.245,5.955],[10.825,5.565],[11.965,7.73],[10.544,4.575],[7.92,3.248],[8.318,4.445],[8.934,4.275],[8.793,5.348],[8.837,4.067],[9.108,4.48],[9.588,5.255],[4.069,0.845],[4.171,1.105],[3.836,1.26],[6.911,3.217],[6.955,3.17],[5.704,3.105],[6.766,3.09],[7.115,4.037],[7.183,4.3],[6.543,3.56],[7.042,3.515],[5.641,2.453],[7.348,3.76],[7.353,3.72],[7.513,3.88],[6.819,3.975],[8.478,4.6],[10.253,5.74],[10.214,5.985],[9.909,5.465],[10.292,5.47],[12.557,12.525],[14.356,11.242],[13.997,11.735],[6.475,3.63],[11.495,4.395],[8.652,11.197],[11.558,3.73],[5.219,3.365],[8.129,3.17],[9.21,5.662],[10.136,6.605],[9.453,5.275],[14.317,11.745],[14.657,11.53],[14.379,11.618],[14.24,11.793],[7.333,4.027],[6.491,2.946],[3.352,0.48]],
+    current:[[2.003,0.095],[13.963,12.982],[14.434,13.185],[9.331,5.765],[4.001,1.065],[4.535,2.96],[2.929,1.705],[8.352,5.138],[8.696,4.362],[8.066,7.927],[7.736,3.615],[8.23,4.692],[3.002,0.35],[8.221,5.018],[6.446,4.522],[8.536,6.077],[8.277,4.717],[8.109,4.28],[8.085,4.775],[7.45,3.459],[5.073,3.505],[7.59,3.86],[7.842,3.882],[3.41,0.547],[3.056,0.412],[2.842,0.598],[2.575,0.295],[2.973,0.255],[3.036,0.227],[3.012,0.365],[7.959,4.758],[9.593,5.067],[9.094,5.485],[6.135,2.428],[6.004,2.882],[6.009,2.942],[8.07,4.263],[8.677,5.263],[3.841,0.965],[3.06,0.41],[4.496,1.64],[2.886,0.735],[2.91,0.24],[2.832,0.502],[3.249,0.677],[3.133,0.485],[9.181,5.562],[9.04,4.228],[6.349,6.055],[4.821,2.055],[5.505,2.158],[5.054,2.482],[5.044,2.415],[6.32,3.46],[4.03,0.917],[8.201,5.42],[8.216,4.755],[7.949,4.647],[7.716,4.438],[7.678,4.327],[8.158,5.055],[7.891,4.475],[4.884,1.925],[5.141,1.86],[5.005,2.135],[4.976,2.22],[3.996,0.978],[4.059,0.89],[3.967,0.892],[5.078,2.0],[4.986,2.078],[5.034,1.89],[5.51,2.897],[5.189,2.428],[2.9,0.708],[9.753,6.032],[4.918,1.887],[3.022,2.1],[3.958,0.682],[3.972,0.767],[3.094,0.29],[2.978,0.395],[4.016,0.735],[3.633,0.675],[4.787,1.905],[5.495,2.402],[4.084,0.69],[3.977,1.117],[5.136,2.112],[3.075,0.54],[2.585,0.295],[3.385,0.495],[3.977,1.625],[3.012,0.237],[3.143,0.41],[3.012,0.405],[3.07,0.527],[4.714,1.659],[3.041,0.333],[3.138,0.333],[2.891,0.422],[2.842,0.278],[2.934,0.3],[3.026,0.25],[4.055,1.143],[3.962,0.865],[4.156,1.09],[3.904,0.847],[4.297,1.272],[3.943,0.86],[3.206,0.372],[3.269,0.38],[3.152,0.443],[3.904,0.785],[4.021,0.733],[4.574,2.303],[3.933,0.62],[4.758,2.645],[4.152,1.385],[2.721,0.19],[2.915,0.403],[3.283,0.347],[7.178,4.947],[8.002,4.074],[7.716,3.422],[3.662,1.377],[9.491,5.832],[2.435,0.068],[2.042,0.113],[2.944,0.402],[4.496,1.755],[2.663,0.475],[4.253,1.232],[7.474,5.543],[8.133,4.815],[8.284,5.798],[3.017,0.152],[8.444,3.917],[9.981,6.38],[2.798,0.562],[2.828,0.278],[2.963,0.338],[2.939,0.52],[7.348,2.54],[7.978,5.085],[8.012,5.232],[7.745,4.633],[7.905,5.12],[7.925,5.072],[4.268,1.025],[4.215,1.248],[4.38,1.06],[4.874,3.03],[5.122,2.197],[4.069,0.98],[3.618,1.292],[3.439,0.507],[3.865,1.912],[4.797,1.815],[4.05,1.125],[4.782,2.6],[3.948,0.98],[4.113,1.248],[4.171,0.985],[6.96,3.727],[5.044,2.32],[4.971,2.268],[4.22,3.022],[6.764,3.772],[6.969,3.892],[5.71,0.097],[2.779,0.5],[5.287,3.745],[3.123,1.62],[3.996,3.21],[4.452,1.612],[7.144,4.18],[4.132,1.285],[4.118,1.312],[3.938,1.365],[3.953,1.222],[3.987,1.2],[9.972,6.659],[10.044,7.262],[9.802,6.917],[10.001,7.299],[10.078,7.65],[9.87,7.265],[5.476,2.92],[5.0,2.678],[5.025,2.625],[4.991,2.547],[5.112,2.835],[5.015,2.697],[5.005,2.615],[4.04,1.1],[2.139,1.335],[3.157,0.507],[4.932,2.012],[9.598,6.57],[4.37,0.623]]
+  },
+  R103:{
+    meta:{detected:"2025-09-21",baseline_source:"First mission days",baseline_start:"2025-07-08",baseline_end:"2025-09-11",last_active:"2026-03-17",run_hours:36.5,ilmor_replacement:"No record",m_base:0.827752,c_base:-1.050635,m_curr:1.022162,c_curr:-2.301467},
+    x_min:2.0,x_max:15.93,
+    baseline:[[2.876,2.015],[2.963,0.535],[3.109,0.425],[3.022,0.45],[2.929,0.425],[2.9,0.355],[4.001,0.69],[4.166,0.66],[3.72,0.83],[4.021,0.925],[3.992,0.84],[3.933,0.955],[3.928,0.865],[4.035,1.062],[4.055,0.818],[4.045,1.225],[3.085,1.66],[2.265,0.578],[9.166,4.22],[9.361,9.158],[9.569,9.088],[9.205,5.805],[10.403,5.695],[10.825,3.7],[10.01,9.037],[10.151,5.707],[10.19,10.42],[10.035,6.47],[10.592,8.457],[10.418,5.433],[9.792,3.24],[9.588,3.17],[7.842,6.74],[11.368,10.062],[8.793,1.92],[9.525,2.95],[9.816,7.58],[9.457,5.255],[9.923,2.255],[10.209,10.963],[9.559,10.867],[8.4,5.282],[9.394,7.515],[8.066,7.442],[10.607,11.06],[9.443,5.665],[2.828,0.375],[2.212,0.427],[3.366,0.35],[3.725,0.22],[3.041,0.68],[3.051,0.532],[3.089,0.65],[2.949,0.44],[3.259,0.325],[2.231,0.177],[2.881,0.435],[3.992,0.155],[3.589,0.64],[4.224,1.69],[10.166,10.482],[9.239,11.04],[4.991,1.8],[7.634,1.22],[5.529,3.33],[2.013,0.367],[8.717,2.74],[8.777,5.548],[7.983,3.027],[9.904,10.24],[10.738,4.383],[10.117,7.15],[9.409,1.6],[2.207,0.21],[2.26,0.155],[11.305,8.945],[3.259,1.323],[3.279,1.0],[2.934,1.725],[2.905,1.035],[3.288,1.305],[6.368,0.007],[5.927,16.396],[3.094,0.005],[7.207,16.389],[3.274,16.384],[2.255,0.175],[2.905,0.24],[2.129,0.675],[3.87,2.402],[5.466,2.928],[7.324,4.02],[4.336,1.153],[4.36,1.435],[5.369,4.92],[2.711,1.228],[5.442,2.917],[2.347,1.718],[2.721,2.93],[8.977,5.723],[3.036,1.665],[7.023,6.355],[2.794,2.46],[2.634,3.512],[10.908,10.285],[7.066,4.317],[7.27,10.78],[2.134,0.92],[2.013,0.015],[4.995,3.722],[4.976,3.18],[4.986,2.995],[5.107,3.058],[5.005,3.1],[4.753,2.79],[5.063,1.442],[5.005,1.413],[4.895,1.233],[4.976,1.192],[4.879,1.19],[4.957,1.29],[6.887,4.75],[5.345,1.74],[7.028,3.908],[6.877,3.712],[6.935,3.625],[9.923,7.114],[9.913,7.02],[7.726,1.232],[9.957,5.633],[9.943,5.577],[4.932,5.035],[11.892,9.818],[12.033,9.73],[14.113,11.155],[14.104,11.262],[7.27,0.522],[12.591,11.207],[12.591,11.29],[2.081,2.123],[14.123,11.203],[14.259,11.213],[12.539,11.352],[3.831,1.535],[3.856,1.65],[4.055,1.985],[3.831,0.435],[3.831,0.39],[3.899,1.823],[2.134,0.095],[3.691,0.482],[3.899,0.477],[3.861,1.957],[3.909,1.788],[3.841,0.675],[3.899,0.43],[3.87,1.755],[3.856,1.942],[3.807,2.065],[3.933,0.475],[3.831,0.527],[3.317,1.653],[3.89,2.0],[3.812,0.927],[3.822,0.43],[3.807,2.103],[2.018,1.41],[3.953,0.415],[5.839,4.402],[3.827,1.605],[4.074,0.677],[8.866,5.155],[12.576,11.287],[3.992,0.838],[3.798,0.378],[2.192,1.425],[3.773,2.123],[3.865,2.12],[2.139,0.207],[3.638,1.887],[3.899,1.657],[4.166,1.585],[5.548,5.468],[7.784,6.37],[5.704,6.557],[3.928,0.822],[3.114,9.668],[3.492,4.325],[3.652,3.592],[3.967,3.534],[3.958,1.485],[2.852,9.825],[4.026,2.645],[4.026,8.703],[3.812,4.383],[5.384,11.08],[4.462,11.145],[2.197,0.16],[11.863,11.88],[2.624,0.195],[8.546,11.902]],
+    current:[[2.056,0.297],[6.237,3.795],[6.315,2.942],[5.907,4.315],[6.247,4.655],[5.999,4.742],[6.116,4.938],[5.844,3.355],[5.529,4.695],[6.169,6.09],[6.004,4.19],[6.029,4.405],[6.349,2.667],[5.932,4.19],[6.043,4.317],[6.596,3.545],[5.767,3.185],[5.48,4.963],[5.757,4.817],[6.174,3.922],[5.417,5.122],[5.805,5.155],[6.266,4.095],[6.198,2.973],[5.679,3.98],[5.936,5.647],[5.51,5.385],[5.742,4.013],[5.18,2.11],[6.213,4.65],[5.613,4.513],[6.169,3.538],[4.355,3.61],[4.04,2.345],[4.011,2.013],[3.876,1.976],[4.089,2.097],[5.199,3.18],[4.249,2.37],[5.925,2.458],[6.043,3.482],[6.163,2.797],[5.106,2.18],[5.718,4.317],[5.864,2.79],[4.981,2.625],[5.063,3.033],[5.451,2.657],[5.287,3.8],[5.426,2.54],[5.422,3.018],[5.941,4.495],[4.947,3.602],[3.841,1.442],[3.618,1.752],[5.068,4.173],[4.889,2.527],[4.691,3.682],[4.834,3.284],[5.607,6.215],[5.548,4.172],[5.359,2.473],[4.952,2.482],[5.088,2.645],[5.51,4.183],[6.082,3.665],[5.961,4.115],[6.334,4.808],[5.243,3.175],[5.146,3.745],[5.325,4.388],[5.907,7.225],[6.378,3.018],[3.342,0.08],[3.089,0.135],[3.085,0.255],[2.857,0.448],[2.876,0.575],[3.962,1.435],[7.178,7.385],[2.066,0.138],[5.136,2.283],[3.191,1.893],[3.24,1.448],[4.709,2.035],[10.214,7.265],[7.789,5.013],[8.114,5.1],[8.609,6.645],[4.695,1.96],[7.508,5.21],[8.745,7.03],[9.006,6.48],[7.794,5.395],[9.254,5.77],[8.488,4.272],[7.028,2.223],[8.898,5.007],[6.965,4.057],[9.079,6.453],[9.162,6.348],[7.018,1.285],[7.658,7.177],[7.896,5.3],[4.844,0.227],[4.074,0.195],[6.247,6.515],[8.274,1.26],[2.212,0.13],[6.121,0.845],[6.848,4.107],[7.032,3.697],[7.178,4.139],[7.11,3.925],[6.853,4.492],[6.96,4.763],[7.008,5.173],[6.795,5.263],[6.897,3.89],[7.11,4.085],[6.931,5.43],[6.635,4.58],[7.096,5.293],[6.902,5.077],[3.157,0.372],[11.849,10.1],[2.532,0.42],[3.06,0.465],[7.648,6.767],[4.937,2.473],[4.176,1.605],[4.064,1.002],[3.182,1.488],[2.934,0.275],[2.905,0.782],[2.755,0.948],[4.957,2.612],[3.109,1.065],[2.939,0.985],[2.449,0.995],[2.595,0.282],[3.046,0.672],[2.978,0.755],[3.39,0.51],[3.264,0.595],[2.895,0.515],[3.269,0.56],[2.92,0.605],[2.837,0.305],[2.75,0.59],[6.024,3.353],[6.058,3.515],[5.888,3.687],[6.087,4.487],[6.281,3.225],[6.392,5.555],[5.825,4.655],[5.5,2.417],[4.68,2.145],[5.616,4.942],[6.29,2.748],[5.364,0.2],[6.145,3.212],[5.835,5.005],[3.24,0.48],[5.485,3.45],[6.916,5.357],[6.363,3.08],[5.752,4.397],[5.42,2.406],[4.85,2.527],[6.087,4.378],[6.214,2.347],[6.106,3.705],[2.412,0.563],[3.104,0.39],[2.231,0.107],[5.936,4.143],[6.105,3.463],[4.831,2.783],[4.021,1.43],[3.443,0.677],[5.354,2.583],[5.257,2.84],[4.842,2.98],[5.122,3.343],[5.282,1.675],[5.17,2.288],[4.894,2.107],[9.995,6.486],[2.431,1.34],[2.42,0.013],[2.183,0.025],[2.018,0.12],[4.19,1.09],[4.026,0.79],[3.962,1.133],[3.836,0.72],[9.327,5.775],[8.89,5.875],[8.89,6.642],[6.64,7.097],[4.292,2.13]]
+  },
+  R101:{
+    meta:{detected:"2025-09-07",baseline_source:"First mission days",baseline_start:"2025-07-08",baseline_end:"2025-09-06",last_active:"2026-03-11",run_hours:50.0,ilmor_replacement:"No record",m_base:0.569385,c_base:0.812005,m_curr:0.924,c_curr:-1.683142},
+    x_min:2.0,x_max:14.6,
+    baseline:[[2.168,0.68],[2.42,0.517],[3.303,0.637],[3.056,0.545],[3.167,0.497],[3.085,0.385],[2.992,0.31],[3.002,0.24],[2.444,2.97],[4.447,4.955],[3.201,0.58],[3.143,1.03],[2.726,0.715],[2.682,0.575],[3.342,0.557],[3.148,1.062],[2.187,0.357],[4.38,1.04],[2.498,8.55],[2.76,19.659],[3.414,9.012],[2.022,0.53],[3.802,8.14],[2.735,3.217],[2.828,0.915],[3.41,0.495],[8.623,7.94],[10.471,7.822],[9.608,3.458],[9.341,1.47],[11.0,8.765],[8.012,5.66],[7.973,4.745],[6.412,2.37],[3.89,8.41],[3.909,8.422],[3.55,8.8],[4.03,0.608],[3.958,0.815],[3.977,0.77],[4.089,0.585],[4.166,0.7],[2.197,0.31],[4.35,1.123],[3.288,0.877],[2.886,0.767],[2.774,0.355],[3.123,1.265],[4.898,2.125],[3.026,0.855],[3.565,1.735],[2.808,0.647],[2.085,0.06],[2.134,0.22],[6.087,7.055],[10.588,7.638],[10.025,10.467],[8.347,6.202],[8.192,4.54],[7.338,4.25],[6.32,3.42],[7.707,4.48],[10.466,4.315],[9.739,5.072],[10.03,7.175],[10.524,7.933],[9.918,4.242],[7.959,7.003],[9.036,8.545],[9.976,3.337],[9.259,2.235],[9.448,3.95],[10.379,5.905],[10.84,9.655],[8.715,8.56],[10.297,6.207],[9.54,2.615],[9.21,3.087],[10.17,7.97],[8.085,2.825],[9.162,8.45],[10.292,5.39],[7.755,5.67],[10.204,7.84],[8.657,3.435],[9.065,10.925],[9.302,6.923],[7.571,9.01],[9.457,1.717],[9.302,3.603],[9.074,0.383],[10.006,4.566],[9.55,4.307],[10.272,9.045],[9.302,8.026],[10.258,4.785],[8.817,8.43],[10.301,10.165],[9.938,3.785],[3.749,9.205],[3.521,1.66],[2.939,0.825],[2.852,0.19],[2.153,0.185],[3.211,0.695],[2.58,0.438],[3.012,0.662],[3.104,0.367],[2.983,0.307],[3.686,0.22],[3.453,0.715],[2.726,0.19],[3.351,0.335],[3.458,0.925],[3.507,0.297],[3.419,0.95],[3.196,0.6],[2.91,0.61],[3.172,0.205],[3.298,0.095],[3.764,0.948],[3.371,0.512],[3.167,0.598],[2.9,0.67],[2.75,0.42],[3.511,0.96],[2.769,0.965],[3.119,1.175],[2.944,0.245],[2.085,0.005],[3.434,0.165],[2.779,1.403],[4.409,2.092],[3.856,0.855],[4.064,1.808],[4.113,1.312],[3.987,1.105],[5.553,5.855],[3.831,0.845],[2.28,0.005],[3.414,1.805],[2.236,0.19],[2.357,1.183],[2.43,1.06],[2.207,0.588],[2.808,0.42],[3.589,9.02],[6.577,3.935],[2.333,0.007],[2.391,16.389],[2.216,0.025],[4.957,0.01],[6.198,0.01],[6.077,0.013],[6.242,16.384],[6.295,0.01],[6.509,0.003],[6.421,16.391],[6.46,16.384],[2.323,0.33],[4.035,1.56],[3.366,0.805],[3.23,0.5],[3.254,1.317],[2.701,0.708],[3.162,0.61],[2.978,0.825],[3.429,0.955],[3.007,1.05],[3.089,0.425],[2.692,0.755],[2.92,0.38],[2.808,0.693],[3.274,0.57],[2.803,0.55],[2.275,0.55],[2.983,17.701],[2.925,0.315],[2.891,7.19],[3.167,8.74],[3.274,8.83],[2.847,8.795],[2.808,8.762],[2.018,0.015],[3.279,8.258],[2.895,8.43],[2.474,8.545],[2.255,7.71],[2.609,8.645],[2.406,8.85],[2.338,8.432],[2.294,8.635],[2.881,5.947],[2.343,2.96],[5.49,8.68],[5.451,3.8],[4.617,2.18],[4.748,4.24],[3.628,3.888],[2.687,0.005],[3.463,0.01],[3.361,16.386],[3.487,0.007],[5.054,0.018],[2.357,0.005]],
+    current:[[2.338,1.13],[2.905,0.583],[5.946,5.643],[2.09,0.542],[2.386,0.357],[2.072,0.524],[3.419,0.337],[8.051,10.575],[6.775,4.805],[3.133,1.435],[7.139,7.752],[7.93,2.853],[10.326,4.622],[12.789,10.87],[5.534,5.205],[2.726,0.899],[6.082,7.032],[6.431,1.875],[9.065,4.343],[9.385,5.45],[2.401,0.705],[2.149,1.407],[6.392,4.207],[11.955,9.912],[11.538,10.78],[10.219,8.162],[6.392,2.58],[8.376,1.945],[2.435,0.608],[3.502,0.155],[2.6,0.242],[8.575,5.912],[10.151,7.907],[10.073,8.53],[10.432,9.905],[8.197,10.803],[10.665,6.665],[8.652,6.867],[6.184,5.94],[4.35,2.388],[2.667,0.88],[3.429,0.193],[2.153,0.17],[9.487,7.61],[11.965,7.942],[9.487,5.975],[8.652,10.928],[6.155,3.925],[5.665,6.814],[11.213,7.995],[5.859,1.403],[6.058,4.1],[3.919,1.935],[2.978,1.155],[9.264,5.48],[8.041,3.462],[7.382,4.82],[2.983,0.855],[7.653,5.067],[7.639,4.223],[7.076,6.9],[7.159,7.457],[8.051,5.107],[7.551,5.303],[7.804,5.633],[5.883,5.22],[7.91,3.477],[6.169,4.355],[5.927,2.743],[7.833,6.045],[7.197,1.882],[7.809,6.77],[6.805,3.85],[6.979,4.072],[11.281,8.95],[12.261,7.853],[11.553,6.215],[5.199,0.14],[10.452,11.367],[6.203,2.938],[4.801,4.332],[7.697,2.822],[4.797,2.505],[5.054,2.875],[4.743,2.697],[6.635,3.933],[6.417,4.225],[5.786,2.658],[4.059,1.367],[6.785,2.88],[4.496,0.492],[3.924,1.288],[7.382,1.97],[6.945,4.99],[4.258,0.738],[6.092,4.147],[7.193,3.542],[6.712,4.707],[7.032,5.13],[6.984,2.737],[4.491,0.625],[7.346,6.518],[3.186,0.57],[2.212,0.242],[9.312,6.07],[6.989,2.89],[5.835,4.047],[8.327,3.857],[6.193,2.893],[10.883,6.417],[9.729,6.47],[9.952,8.693],[9.656,8.61],[3.822,2.192],[4.991,0.738],[7.973,5.838],[7.251,5.325],[6.475,5.138],[3.744,2.26],[6.523,3.438],[3.225,1.827],[7.42,6.447],[7.692,7.527],[2.027,0.205],[2.546,0.38],[5.733,3.275],[2.997,0.53],[2.682,1.222],[9.724,6.882],[3.085,0.809],[2.643,0.215],[2.711,1.442],[2.726,0.355],[10.893,2.042],[10.588,7.045],[5.422,3.887],[9.026,7.6],[10.534,9.415],[9.424,8.293],[5.786,2.572],[9.952,8.132],[5.864,10.908],[6.994,10.992],[7.338,10.625],[8.095,4.268],[8.109,4.24],[5.451,4.482],[3.424,0.292],[10.534,6.975],[3.07,1.78],[10.195,6.175],[10.374,6.14],[7.493,6.49],[7.149,3.558],[5.277,3.545],[3.982,3.535],[2.187,0.105],[10.903,8.567],[10.786,9.273],[2.905,0.892],[2.881,0.557],[3.22,0.47],[2.735,1.252],[3.264,1.24],[2.493,0.4],[3.012,0.51],[2.139,1.048],[2.406,1.327],[2.604,0.185],[2.207,0.625],[2.275,0.247],[2.939,0.425],[2.266,0.925],[9.763,10.113],[9.899,7.4],[9.569,8.943],[8.963,6.52],[2.595,3.737],[10.112,11.16],[10.316,7.78],[7.008,11.07],[7.614,9.547],[6.921,10.082],[2.008,0.362],[11.645,9.735],[9.947,5.973],[10.5,6.165],[4.035,0.2],[8.075,11.287],[9.234,8.518],[5.728,3.143],[6.261,3.178],[9.729,9.713],[9.632,11.668],[2.619,0.19],[10.277,11.643],[10.646,11.852],[3.133,1.573],[4.583,1.03],[12.494,11.35],[3.861,0.582],[3.822,0.71]]
+  }
+};
+
+// Colors
+var C = {TEAL:'#0ef0c4',BLUE:'#3b9eca',AMBER:'#f5a623',MUTED:'#8899aa',TEXT:'#cde0f0',PURPLE:'#a78bfa',PINK:'#e84393',SKY:'#38bdf8',ORANGE:'#f97316',GREEN:'#22d3a0',BORDER:'#162435'};
+var CAT_COLORS = {Rampages:C.TEAL,Other:C.BLUE,Sims:C.AMBER};
+
+Chart.defaults.color = C.MUTED;
+Chart.defaults.font.family = "'DM Sans', sans-serif";
+
+// KPI Row
+var totalWaterNM=4088.79, totalMovingNM=3066.05, totalWaterHrs=4218.4;
+var movingHrs = CATEGORIES.reduce(function(s,c){return s+c.water_hrs*(c.moving/c.total_water);},0);
+var kpis=[
+  {label:'Most Recent On Water',value:'Mar 13, 2026',sub:'15:15 · Boat #135',color:C.TEAL},
+  {label:'Active Vessels',value:'69',sub:'Boats tracked',color:C.BLUE},
+  {label:'Total Water Dist',value:'4,088.8 NM',sub:'Nautical miles on water',color:C.AMBER},
+  {label:'Moving Water Dist',value:'3,066.1 NM',sub:'Nautical miles actively moving',color:C.PINK},
+  {label:'Total Water Time',value:'4,218',sub:'Hours on water',color:C.PURPLE},
+  {label:'Moving Water Time',value:Math.round(movingHrs).toLocaleString(),sub:'Hours actively moving',color:C.SKY}
+];
+document.getElementById('kpi-row').innerHTML=kpis.map(function(k){
+  return '<div class="kpi-card"><div class="kpi-accent" style="background:'+k.color+'"></div><div class="kpi-label">'+k.label+'</div><div class="kpi-value">'+k.value+'</div><div class="kpi-sub">'+k.sub+'</div></div>';
+}).join('');
+
+// Monthly chart
+new Chart(document.getElementById('monthlyChart'),{
+  type:'line',
+  data:{
+    labels:MONTHLY.map(function(m){return m.month;}),
+    datasets:[
+      {label:'Total Water (NM)',data:MONTHLY.map(function(m){return m.water_dist;}),borderColor:C.TEAL,backgroundColor:C.TEAL+'33',fill:true,tension:0.4,pointRadius:0,borderWidth:2},
+      {label:'Moving Water (NM)',data:MONTHLY.map(function(m){return m.water_moving_dist;}),borderColor:C.BLUE,backgroundColor:C.BLUE+'22',fill:true,tension:0.4,pointRadius:0,borderWidth:2},
+      {label:'Water Time (hrs)',data:MONTHLY.map(function(m){return m.water_hrs;}),borderColor:C.PURPLE,backgroundColor:'transparent',fill:false,tension:0.4,pointRadius:0,borderWidth:2,borderDash:[5,3]}
+    ]
+  },
+  options:{responsive:true,plugins:{legend:{labels:{color:C.MUTED,font:{size:11}}}},scales:{x:{grid:{color:C.BORDER},ticks:{color:C.MUTED,font:{size:10}}},y:{grid:{color:C.BORDER},ticks:{color:C.MUTED,font:{size:10}}}}}
+});
+
+// Hours chart
+var maxHrs=Math.max.apply(null,MONTHLY.map(function(m){return m.water_hrs;}));
+new Chart(document.getElementById('hoursChart'),{
+  type:'bar',
+  data:{
+    labels:MONTHLY.map(function(m){return m.month;}),
+    datasets:[{label:'Water Hours',data:MONTHLY.map(function(m){return m.water_hrs;}),backgroundColor:MONTHLY.map(function(m){return m.water_hrs===maxHrs?C.PURPLE:C.PURPLE+'44';}),borderRadius:4}]
+  },
+  options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{grid:{color:C.BORDER},ticks:{color:C.MUTED,font:{size:10}}},y:{grid:{color:C.BORDER},ticks:{color:C.MUTED,font:{size:10}}}}}
+});
+
+// Vessel list
+var currentMetric='water_dist';
+function renderVessels(){
+  var maxVal=Math.max.apply(null,ALL_BOATS.map(function(b){return b[currentMetric]||0;}));
+  var unit=currentMetric==='water_hrs'?' h':' NM';
+  document.getElementById('vessel-list').innerHTML=ALL_BOATS.map(function(b){
+    var val=b[currentMetric]||0;
+    var pct=maxVal>0?(val/maxVal)*100:0;
+    var col=CAT_COLORS[b.category]||C.MUTED;
+    var dispVal=val>0?val.toFixed(1)+unit:'--';
+    return '<div class="vessel-row"><div class="vessel-id">'+b.id+'</div><div class="vessel-bar-wrap"><div class="vessel-bar" style="width:'+pct+'%;background:'+col+'"></div></div><div class="vessel-val" style="color:'+col+'">'+dispVal+'</div><div class="vessel-date">'+(b.last_water||'no water')+'</div></div>';
+  }).join('');
+}
+renderVessels();
+
+function setMetric(metric,btn){
+  currentMetric=metric;
+  document.querySelectorAll('.metric-btn').forEach(function(b){b.className='metric-btn';});
+  var cls=metric==='water_dist'?'active-teal':metric==='water_moving_dist'?'active-blue':'active-purple';
+  btn.className='metric-btn '+cls;
+  renderVessels();
+}
+
+// Category cards
+var catColors=[C.TEAL,C.BLUE,C.AMBER];
+// Overview alert cards
+document.getElementById('ov-alert-cards').innerHTML=Object.keys(ALERT_DATA).map(function(bid){
+  var d=ALERT_DATA[bid]; var m=d.meta;
+  var slopePct=(((m.m_curr-m.m_base)/m.m_base)*100).toFixed(1);
+  return '<div class="ov-alert-card"><div class="ov-alert-header"><div class="ov-dot"></div><span class="ov-boat-id">Boat '+bid+'</span><span class="ov-slope-badge">&#8593;'+slopePct+'% slope</span></div><div class="ov-stats"><div><div class="ov-stat-label">Detected</div><div class="ov-stat-val">'+m.detected+'</div></div><div><div class="ov-stat-label">Last Active</div><div class="ov-stat-val">'+m.last_active+'</div></div><div><div class="ov-stat-label">Run Hours</div><div class="ov-stat-val">'+m.run_hours+' hrs</div></div><div><div class="ov-stat-label">Base Slope</div><div class="ov-stat-val">'+m.m_base.toFixed(4)+'</div></div><div><div class="ov-stat-label">Curr Slope</div><div class="ov-stat-val">'+m.m_curr.toFixed(4)+'</div></div><div><div class="ov-stat-label">Baseline</div><div class="ov-stat-val">First 3 days</div></div></div><button class="view-chart-btn" onclick="switchTab(\'alerts\');setAlertBoat(\''+bid+'\')">View full chart &rarr;</button></div>';
+}).join('');
+
+// Alerts tab
+var currentAlertBoat='R135';
+var scatterChartInst=null;
+
+function buildAlertBoatBtns(){
+  document.getElementById('alert-boat-btns').innerHTML=Object.keys(ALERT_DATA).map(function(bid){
+    var m=ALERT_DATA[bid].meta;
+    var slopePct=(((m.m_curr-m.m_base)/m.m_base)*100).toFixed(1);
+    var active=bid===currentAlertBoat;
+    return '<button class="alert-boat-btn'+(active?' active':'')+'" onclick="setAlertBoat(\''+bid+'\')"><div class="alert-boat-name">Boat '+bid+'</div><div class="alert-boat-det">Detected: '+m.detected+'</div><div class="alert-boat-slope">&#8593;'+slopePct+'% slope</div><div class="alert-boat-last">Last active: '+m.last_active+'</div></button>';
+  }).join('');
+}
+
+function buildScatterChart(){
+  var d=ALERT_DATA[currentAlertBoat]; var m=d.meta;
+  var slopePct=(((m.m_curr-m.m_base)/m.m_base)*100).toFixed(1);
+  document.getElementById('scatter-title').textContent='Boat '+currentAlertBoat;
+  document.getElementById('scatter-meta').innerHTML=[['Detected',m.detected],['Last Active',m.last_active],['Run Hours',m.run_hours+' hrs'],['Slope Increase','+'+slopePct+'%']].map(function(item){
+    return '<div><div style="font-size:10px;color:'+C.MUTED+';letter-spacing:1px;text-transform:uppercase">'+item[0]+'</div><div style="font-size:13px;font-weight:700;color:'+(item[0]==='Slope Increase'?C.ORANGE:C.TEXT)+';font-family:\'DM Mono\',monospace">'+item[1]+'</div></div>';
+  }).join('');
+  document.getElementById('scatter-info-bar').innerHTML='<span>Baseline: <span style="color:'+C.GREEN+';font-weight:600">'+m.baseline_source+'</span></span><span>'+m.baseline_start+' &#8594; '+m.baseline_end+'</span><span>Baseline slope: <span style="color:'+C.GREEN+';font-family:\'DM Mono\',monospace">'+m.m_base.toFixed(4)+'</span></span><span>Current slope: <span style="color:'+C.ORANGE+';font-family:\'DM Mono\',monospace">'+m.m_curr.toFixed(4)+'</span></span>';
+  var steps=40; var step=(d.x_max-d.x_min)/steps;
+  var baseLineData=[]; var currLineData=[];
+  for(var i=0;i<=steps;i++){var x=d.x_min+i*step;baseLineData.push({x:parseFloat(x.toFixed(3)),y:parseFloat((m.m_base*x+m.c_base).toFixed(3))});currLineData.push({x:parseFloat(x.toFixed(3)),y:parseFloat((m.m_curr*x+m.c_curr).toFixed(3))});}
+  if(scatterChartInst)scatterChartInst.destroy();
+  scatterChartInst=new Chart(document.getElementById('scatterChart'),{
+    type:'scatter',
+    data:{datasets:[
+      {label:'Baseline',data:d.baseline.map(function(p){return{x:p[0],y:p[1]};}),backgroundColor:C.GREEN+'55',pointRadius:2,pointHoverRadius:3},
+      {label:'Current',data:d.current.map(function(p){return{x:p[0],y:p[1]};}),backgroundColor:C.ORANGE+'66',pointRadius:2,pointHoverRadius:3},
+      {label:'Baseline Line',data:baseLineData,type:'line',borderColor:C.GREEN,borderWidth:2.5,pointRadius:0,fill:false},
+      {label:'Current Line',data:currLineData,type:'line',borderColor:C.ORANGE,borderWidth:2.5,pointRadius:0,fill:false}
+    ]},
+    options:{responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){return ctx.parsed.x.toFixed(2)+' kts \u2192 '+ctx.parsed.y.toFixed(2)+' A';}}}},scales:{x:{type:'linear',title:{display:true,text:'Speed (knots)',color:C.MUTED},grid:{color:C.BORDER},ticks:{color:C.MUTED,font:{size:10}}},y:{type:'linear',title:{display:true,text:'Current (A)',color:C.MUTED},grid:{color:C.BORDER},ticks:{color:C.MUTED,font:{size:10}}}}}
+  });
+  var slopeDelta=(m.m_curr-m.m_base).toFixed(4);
+  var intDelta=(m.c_curr-m.c_base).toFixed(4);
+  document.getElementById('reg-grid').innerHTML=[['Baseline slope',m.m_base.toFixed(4),C.GREEN],['Current slope',m.m_curr.toFixed(4),C.ORANGE],['Baseline intercept',m.c_base.toFixed(4),C.GREEN],['Current intercept',m.c_curr.toFixed(4),C.ORANGE],['Slope \u0394','+'+slopeDelta,C.ORANGE],['Intercept \u0394',intDelta,C.ORANGE]].map(function(item){return '<div><div class="reg-label">'+item[0]+'</div><div class="reg-val" style="color:'+item[2]+'">'+item[1]+'</div></div>';}).join('');
+  document.getElementById('alert-timeline').innerHTML=[['Baseline Period',m.baseline_start+' \u2192 '+m.baseline_end,C.GREEN],['Source',m.baseline_source,C.MUTED],['Degradation Detected',m.detected,C.ORANGE],['Run Hours at Detection',m.run_hours+' hrs',C.TEXT],['Last Active',m.last_active,C.TEXT],['Ilmor Replacement',m.ilmor_replacement||'Not scheduled',m.ilmor_replacement?C.AMBER:C.MUTED]].map(function(item){return '<div class="info-row"><span style="font-size:11px;color:'+C.MUTED+'">'+item[0]+'</span><span style="font-size:11px;font-weight:600;color:'+item[2]+';font-family:\'DM Mono\',monospace">'+item[1]+'</span></div>';}).join('');
+}
+
+function setAlertBoat(bid){currentAlertBoat=bid;buildAlertBoatBtns();buildScatterChart();}
+buildAlertBoatBtns();
+buildScatterChart();
+
+// ── BOAT DETAILS TAB ─────────────────────────────────────────────────────────
+var BOAT_DETAILS=[
+  {id:"137",rid:"R137",asset_type:"USV Gen 2 ILMOR",fleet:"",status:"",notes:"",location:"",schedule:""},
+  {id:"138",rid:"R138",asset_type:"USV Gen 2 ILMOR",fleet:"",status:"",notes:"",location:"",schedule:""},
+  {id:"139",rid:"R139",asset_type:"USV Gen 2 ILMOR",fleet:"",status:"",notes:"",location:"",schedule:""},
+  {id:"140",rid:"R140",asset_type:"USV Gen 2 ILMOR",fleet:"",status:"",notes:"",location:"",schedule:""},
+  {id:"100",rid:"R100",asset_type:"USV Gen 2 ILMOR",fleet:"Engineering Asset",status:"Partially Mission Capable",notes:"Test Boat",location:"Bldg 82",schedule:"SSCI Radar Bay Testing"},
+  {id:"113",rid:"R113",asset_type:"USV Gen 2 ILMOR",fleet:"Engineering Asset",status:"Partially Mission Capable",notes:"Vita doing dual GPS integration - not usable for other testing",location:"Bldg 82",schedule:"LMCO Shipment week, LMCO Demo"},
+  {id:"134",rid:"R134",asset_type:"USV Gen 2 ILMOR",fleet:"Engineering Asset",status:"Partially Mission Capable",notes:"Up to 134 need retouch, need to complete ATP",location:"Bldg 82",schedule:""},
+  {id:"116",rid:"R116",asset_type:"USV Gen 2 ILMOR",fleet:"Testing Asset",status:"Testing",notes:"Integrated HMI to Ilmor, phantom estop issue, new orca testing",location:"Bldg 82",schedule:"SSCI_DIU Demo"},
+  {id:"121",rid:"R121",asset_type:"USV Gen 2 ILMOR",fleet:"Testing Asset",status:"Testing",notes:"",location:"Bldg 82",schedule:""},
+  {id:"124",rid:"R124",asset_type:"USV Gen 2 ILMOR",fleet:"Testing Asset",status:"Testing",notes:"Good Boat, 3 Camera for CA, Anello",location:"Bldg 82",schedule:""},
+  {id:"135",rid:"R135",asset_type:"USV Gen 2 ILMOR",fleet:"Testing Asset",status:"Available",notes:"Adding NEMA2000 compass for EKF testing purpose",location:"Bldg 82",schedule:""},
+  {id:"136",rid:"R136",asset_type:"USV Gen 2 ILMOR",fleet:"Testing Asset",status:"Available",notes:"Testing Failsafe with @paul and @ashley, new FW added",location:"Bldg 82",schedule:""},
+  {id:"126",rid:"R126",asset_type:"USV Gen 2 ILMOR",fleet:"Granite",status:"Available",notes:"",location:"CEOM",schedule:""},
+  {id:"127",rid:"R127",asset_type:"USV Gen 2 ILMOR",fleet:"Granite",status:"Available",notes:"",location:"CEOM",schedule:""},
+  {id:"128",rid:"R128",asset_type:"USV Gen 2 ILMOR",fleet:"Granite",status:"Available",notes:"",location:"CEOM",schedule:""},
+  {id:"129",rid:"R129",asset_type:"USV Gen 2 ILMOR",fleet:"Granite",status:"Available",notes:"",location:"CEOM",schedule:""},
+  {id:"130",rid:"R130",asset_type:"USV Gen 2 ILMOR",fleet:"Granite",status:"Available",notes:"",location:"CEOM",schedule:""},
+  {id:"101",rid:"R101",asset_type:"USV Gen 2 ILMOR",fleet:"Hawaii Fleet",status:"Available",notes:"Boat repaired 1/14/26 New Orca, Hmi box, Icu",location:"Hawaii",schedule:"SSCI Radar Bay Testing"},
+  {id:"102",rid:"R102",asset_type:"USV Gen 2 ILMOR",fleet:"Hawaii Fleet",status:"Available",notes:"Complete - AV 15AUG25",location:"Hawaii",schedule:"SSCI Radar Bay Testing"},
+  {id:"106",rid:"R106",asset_type:"USV Gen 2 ILMOR",fleet:"Hawaii Fleet",status:"Partially Mission Capable",notes:"Orca getting hot. New orca installed 1/14/26",location:"Hawaii",schedule:"SSCI Radar Bay Testing"},
+  {id:"107",rid:"R107",asset_type:"USV Gen 2 ILMOR",fleet:"Hawaii Fleet",status:"Out of Service",notes:"Ilmor swap complete with new steering. Needs HMI update and TLC.",location:"Hawaii",schedule:"Silent Swarm Shipment"},
+  {id:"110",rid:"R110",asset_type:"USV Gen 2 ILMOR",fleet:"Hawaii Fleet",status:"Partially Mission Capable",notes:"Ilmor swapped however new unit is having ICU and invertor restart issues",location:"Hawaii",schedule:"SSCI Radar Bay Testing"},
+  {id:"120",rid:"R120",asset_type:"USV Gen 2 ILMOR",fleet:"Hawaii Fleet",status:"Out of Service",notes:"Needs ilmor swap and HMI update",location:"Hawaii",schedule:""},
+  {id:"118",rid:"R118",asset_type:"USV Gen 2 ILMOR",fleet:"USARPAC",status:"Assigned to Customer",notes:"Shipped 12/18 - Loan",location:"Hawaii",schedule:""},
+  {id:"119",rid:"R119",asset_type:"USV Gen 2 ILMOR",fleet:"USARPAC",status:"Assigned to Customer",notes:"Shipped 12/18 - Loan",location:"Hawaii",schedule:""},
+  {id:"125",rid:"R125",asset_type:"USV Gen 2 ILMOR",fleet:"USARPAC",status:"Assigned to Customer",notes:"Shipped 12/18 - Loan",location:"Hawaii",schedule:""},
+  {id:"131",rid:"R131",asset_type:"USV Gen 2 ILMOR",fleet:"USARPAC",status:"Assigned to Customer",notes:"Shipped 12/18",location:"Hawaii",schedule:""},
+  {id:"132",rid:"R132",asset_type:"USV Gen 2 ILMOR",fleet:"USARPAC",status:"Assigned to Customer",notes:"Shipped 12/18",location:"Hawaii",schedule:""},
+  {id:"133",rid:"R133",asset_type:"USV Gen 2 ILMOR",fleet:"USARPAC",status:"Assigned to Customer",notes:"Shipped 12/18",location:"Hawaii",schedule:""},
+  {id:"105",rid:"R105",asset_type:"USV Gen 2 ILMOR",fleet:"Demo Asset",status:"Available",notes:"UAS Launch Platform",location:"RIMS",schedule:"SSCI Radar Bay Testing, SSCI_DIU Demo, LMCO Shipment week, LMCO Demo"},
+  {id:"108",rid:"R108",asset_type:"USV Gen 2 ILMOR",fleet:"Demo Asset",status:"Available",notes:"",location:"RIMS",schedule:"Silent Swarm Shipment, SSCI_DIU Demo, LMCO Shipment week, LMCO Demo"},
+  {id:"112",rid:"R112",asset_type:"USV Gen 2 ILMOR",fleet:"Demo Asset",status:"Available",notes:"",location:"RIMS",schedule:""},
+  {id:"114",rid:"R114",asset_type:"USV Gen 2 ILMOR",fleet:"Demo Asset",status:"Available",notes:"",location:"RIMS",schedule:"SSCI_DIU Demo"},
+  {id:"117",rid:"R117",asset_type:"USV Gen 2 ILMOR",fleet:"Demo Asset",status:"Available",notes:"",location:"RIMS",schedule:""},
+  {id:"122",rid:"R122",asset_type:"USV Gen 2 ILMOR",fleet:"Testing Asset",status:"Available",notes:"Long Term Testing",location:"RIMS",schedule:""},
+  {id:"103",rid:"R103",asset_type:"USV Gen 2 ILMOR",fleet:"San Diego Fleet",status:"Available",notes:"Good Boat",location:"TBD-San Diego",schedule:"Six Maritime: Port of San Diego Demo"},
+  {id:"104",rid:"R104",asset_type:"USV Gen 2 ILMOR",fleet:"San Diego Fleet",status:"Available",notes:"Good Boat",location:"TBD-San Diego",schedule:"Six Maritime: Port of San Diego Demo"},
+  {id:"109",rid:"R109",asset_type:"USV Gen 2 ILMOR",fleet:"San Diego Fleet",status:"Available",notes:"Good Boat with radar",location:"TBD-San Diego",schedule:"Six Maritime: Port of San Diego Demo"},
+  {id:"111",rid:"R111",asset_type:"USV Gen 2 ILMOR",fleet:"San Diego Fleet",status:"Out of Service",notes:"Kitbox to be installed 2/11/26",location:"TBD-San Diego",schedule:"Six Maritime: Port of San Diego Demo"},
+  {id:"115",rid:"R115",asset_type:"USV Gen 2 ILMOR",fleet:"San Diego Fleet",status:"Available",notes:"Good Boat with radar",location:"TBD-San Diego",schedule:"Six Maritime: Port of San Diego Demo"},
+  {id:"123",rid:"R123",asset_type:"USV Gen 2 ILMOR",fleet:"San Diego Fleet",status:"Available",notes:"Good Boat",location:"TBD-San Diego",schedule:"Six Maritime: Port of San Diego Demo"}
+];
+
+var STATUS_COLORS={
+  'Available':        {bg:'#0a2a1a',border:'#22c55e',text:'#4ade80'},
+  'Testing':          {bg:'#1a1a0a',border:'#eab308',text:'#facc15'},
+  'Partially Mission Capable':{bg:'#1a100a',border:'#f97316',text:'#fb923c'},
+  'Out of Service':   {bg:'#2a0a0a',border:'#ef4444',text:'#f87171'},
+  'Assigned to Customer':{bg:'#0a1020',border:'#3b9eca',text:'#60b4d8'},
+  '':                 {bg:'#0b1623',border:'#162435',text:'#8899aa'}
+};
+
+var FLEET_ORDER=['Hawaii Fleet','San Diego Fleet','Demo Asset','Testing Asset','Engineering Asset','Granite','USARPAC',''];
+var FLEET_ICONS={'Hawaii Fleet':'🌺','San Diego Fleet':'🌊','Demo Asset':'🎯','Testing Asset':'🔬','Engineering Asset':'⚙️','Granite':'🪨','USARPAC':'⭐','':"❓"};
+
+var detFleetFilter='ALL';
+var detStatusFilter='ALL';
+
+function statusPill(s){
+  var sc=STATUS_COLORS[s]||STATUS_COLORS[''];
+  return '<span class="status-pill" style="background:'+sc.bg+';border:1px solid '+sc.border+';color:'+sc.text+'">'+( s||'Unknown')+'</span>';
+}
+
+function buildDetailsSummary(boats){
+  var statCounts={};
+  boats.forEach(function(b){statCounts[b.status]=(statCounts[b.status]||0)+1;});
+  var shown=[['Available','#22c55e'],['Partially Mission Capable','#f97316'],['Testing','#eab308'],['Out of Service','#ef4444'],['Assigned to Customer','#3b9eca']];
+  var html=shown.map(function(pair){
+    var s=pair[0],col=pair[1],cnt=statCounts[s]||0;
+    var label=s==='Partially Mission Capable'?'Partial MC':s;
+    return '<div style="background:#0b1623;border:1px solid #162435;border-radius:10px;padding:14px 16px;position:relative;overflow:hidden"><div style="position:absolute;top:0;left:0;width:3px;height:100%;background:'+col+';border-radius:10px 0 0 10px"></div><div style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#8899aa;margin-bottom:6px">'+label+'</div><div style="font-size:28px;font-weight:800;color:#cde0f0;font-family:\'DM Mono\',monospace">'+cnt+'</div></div>';
+  }).join('');
+  html+='<div style="background:#0b1623;border:1px solid #162435;border-radius:10px;padding:14px 16px;position:relative;overflow:hidden"><div style="position:absolute;top:0;left:0;width:3px;height:100%;background:#0ef0c4;border-radius:10px 0 0 10px"></div><div style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#8899aa;margin-bottom:6px">Total Assets</div><div style="font-size:28px;font-weight:800;color:#cde0f0;font-family:\'DM Mono\',monospace">'+boats.length+'</div></div>';
+  document.getElementById('details-summary').innerHTML=html;
+}
+
+function buildFleetFilterBtns(){
+  var fleets=['ALL'].concat(FLEET_ORDER);
+  var fb=document.getElementById('fleet-filter-btns'); if(fb) fb.innerHTML=fleets.map(function(f){
+    var active=detFleetFilter===f;
+    var label=f==='ALL'?'All Fleets':(f||'Unassigned');
+    return '<button class="filter-btn'+(active?' on':'')+'" style="'+(active?'border-color:#0ef0c4;color:#0ef0c4;background:#0ef0c411':'')+'" onclick="setDetailFleetFilter(\''+f+'\')">'+label+'</button>';
+  }).join('');
+  var statuses=['ALL','Available','Testing','Partially Mission Capable','Out of Service','Assigned to Customer'];
+  var sb=document.getElementById('status-filter-btns'); if(sb) sb.innerHTML=statuses.map(function(s){
+    var active=detStatusFilter===s;
+    var sc=s!=='ALL'?STATUS_COLORS[s]:{border:'#0ef0c4',text:'#0ef0c4'};
+    var label=s==='ALL'?'All':s==='Partially Mission Capable'?'Partial MC':s;
+    return '<button class="filter-btn'+(active?' on':'')+'" style="'+(active?'border-color:'+sc.border+';color:'+sc.text+';background:'+sc.border+'22':'')+'" onclick="setDetailStatusFilter(\''+s+'\')">'+label+'</button>';
+  }).join('');
+}
+
+function getFilteredBoats(){
+  return BOAT_DETAILS.filter(function(b){
+    var fleetOk=detFleetFilter==='ALL'||b.fleet===detFleetFilter;
+    var statusOk=detStatusFilter==='ALL'||b.status===detStatusFilter;
+    return fleetOk&&statusOk;
+  });
+}
+
+function buildFleetGroups(){
+  var boats=getFilteredBoats();
+  // Group by fleet
+  var groups={};
+  boats.forEach(function(b){
+    var key=b.fleet||'';
+    if(!groups[key])groups[key]=[];
+    groups[key].push(b);
+  });
+  // Also look up water data
+  var waterMap={};
+  ALL_BOATS.forEach(function(b){waterMap[b.id]=b;});
+
+  var orderedKeys=FLEET_ORDER.filter(function(f){return groups[f];});
+  Object.keys(groups).forEach(function(k){if(orderedKeys.indexOf(k)<0)orderedKeys.push(k);});
+
+  var fg=document.getElementById('fleet-groups'); if(fg) fg.innerHTML=orderedKeys.map(function(fleet){
+    var fboats=groups[fleet];
+    var icon=FLEET_ICONS[fleet]||'';
+    var label=fleet||'Unassigned';
+    var rows=fboats.map(function(b){
+      var wd=waterMap[b.id];
+      var distStr=wd&&wd.water_dist>0?wd.water_dist.toFixed(1)+' NM':'--';
+      var dateStr=wd&&wd.last_water?wd.last_water:'--';
+      var locCol={'Hawaii':'#0ef0c4','RIMS':'#3b9eca','Bldg 82':'#f5a623','CEOM':'#a78bfa','TBD-San Diego':'#f97316','':'#8899aa'};
+      var lc=locCol[b.location]||'#8899aa';
+      return '<tr><td style="font-family:\'DM Mono\',monospace;font-weight:700;color:#cde0f0;white-space:nowrap">'+b.rid+'</td><td>'+statusPill(b.status)+'</td><td style="color:'+lc+';font-weight:600;font-size:11px">'+( b.location||'--')+'</td><td style="font-size:11px;color:#8899aa">'+b.asset_type+'</td><td><div class="det-note">'+( b.notes||'<span style="color:#2a3f55">—</span>')+'</div></td><td><div class="det-schedule">'+( b.schedule||'<span style="color:#2a3f55">—</span>')+'</div></td><td style="font-family:\'DM Mono\',monospace;font-size:11px;color:#0ef0c4;text-align:right">'+distStr+'</td><td style="font-size:11px;color:#8899aa;text-align:right;white-space:nowrap">'+dateStr+'</td></tr>';
+    }).join('');
+    return '<div class="det-fleet-section"><div class="det-fleet-header"><span style="font-size:18px">'+icon+'</span><span class="det-fleet-name">'+label+'</span><span class="det-fleet-count">'+fboats.length+' boat'+(fboats.length!==1?'s':'')+'</span></div><div style="background:#0b1623;border:1px solid #162435;border-radius:12px;overflow:hidden"><table class="det-table"><thead><tr><th>Boat ID</th><th>Status</th><th>Location</th><th>Asset Type</th><th>Notes</th><th>Assigned Schedule</th><th style="text-align:right">Water Dist</th><th style="text-align:right">Last On Water</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>';
+  }).join('');
+}
+
+function setDetailFleetFilter(f){detFleetFilter=f;buildFleetFilterBtns();buildFleetGroups();}
+function setDetailStatusFilter(s){detStatusFilter=s;buildFleetFilterBtns();buildFleetGroups();}
+
+buildFleetFilterBtns();
+buildFleetGroups();
+
+// Status & Location overview panels
+(function(){
+  var STATUS_ORDER=['Available','Testing','Partially Mission Capable','Out of Service','Assigned to Customer',''];
+  var STATUS_LABELS={'Available':'Available','Testing':'Testing','Partially Mission Capable':'Partial MC','Out of Service':'Out of Service','Assigned to Customer':'Assigned to Customer','':'Unknown'};
+  var STATUS_COLS={'Available':'#22c55e','Testing':'#eab308','Partially Mission Capable':'#f97316','Out of Service':'#ef4444','Assigned to Customer':'#3b9eca','':'#8899aa'};
+  var LOC_ORDER=['Hawaii','RIMS','Bldg 82','TBD-San Diego','CEOM',''];
+  var LOC_LABELS={'Hawaii':'Hawaii','RIMS':'RIMS','Bldg 82':'Bldg 82','TBD-San Diego':'San Diego','CEOM':'CEOM','':'Unknown'};
+  var LOC_COLS={'Hawaii':'#0ef0c4','RIMS':'#3b9eca','Bldg 82':'#f5a623','TBD-San Diego':'#f97316','CEOM':'#a78bfa','':'#8899aa'};
+  var statusCounts={};
+  var locationCounts={};
+  BOAT_DETAILS.forEach(function(b){
+    var s=b.status||''; statusCounts[s]=(statusCounts[s]||0)+1;
+    var l=b.location||''; locationCounts[l]=(locationCounts[l]||0)+1;
+  });
+  var total=BOAT_DETAILS.length;
+  function makeRows(order,labels,colors,counts){
+    return order.filter(function(k){return counts[k];}).map(function(k){
+      var cnt=counts[k],pct=Math.round(cnt/total*100),col=colors[k];
+      return '<div style="margin-bottom:12px">'+
+        '<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px">'+
+          '<span style="color:'+col+';font-weight:600">'+labels[k]+'</span>'+
+          '<span style="color:#8899aa;font-family:\'DM Mono\',monospace">'+cnt+' <span style="color:'+col+'">'+pct+'%</span></span>'+
+        '</div>'+
+        '<div style="background:#162435;border-radius:4px;height:5px;overflow:hidden">'+
+          '<div style="width:'+pct+'%;height:100%;border-radius:4px;background:'+col+'"></div>'+
+        '</div></div>';
+    }).join('');
+  }
+  document.getElementById('status-summary').innerHTML=makeRows(STATUS_ORDER,STATUS_LABELS,STATUS_COLS,statusCounts);
+  document.getElementById('location-summary').innerHTML=makeRows(LOC_ORDER,LOC_LABELS,LOC_COLS,locationCounts);
+})();
+
+// ── ICU ALERTS TAB ───────────────────────────────────────────────────────────
+var ICU_DATA={
+  R130:{
+    meta:{detected:"2025-12-09",baseline_start:"2025-10-27",baseline_end:"2025-12-09",last_active:"2025-12-11",run_hours:15.4,icu_replacement:"No record",ilmor_replacement:"No record",baseline_std:0.6707,current_std:23.4799},
+    x_min:2.0,x_max:16.44,
+    baseline:[[2.003,48.443],[8.856,47.985],[2.197,47.792],[5.088,48.188],[6.334,48.498],[2.052,48.517],[13.847,50.045],[15.21,49.115],[9.026,47.885],[16.092,48.485],[3.502,48.188],[3.23,47.992],[12.178,48.453],[2.571,49.34],[3.264,49.693],[2.333,47.733],[9.239,48.013],[4.613,49.388],[7.062,49.735],[11.611,47.805],[15.869,50.263],[15.845,48.565],[15.612,49.133],[14.938,48.85],[5.912,47.953],[14.409,48.54],[14.754,48.16],[14.957,49.047],[15.447,48.935],[11.029,48.633],[14.075,48.325],[12.401,49.517],[14.143,48.318],[13.75,49.002],[6.591,48.915],[14.099,48.325],[13.148,48.34],[6.004,49.865],[12.532,47.805],[13.095,49.102],[11.858,47.665],[10.777,51.182],[11.781,47.875],[10.845,48.992],[6.276,48.345],[10.704,48.968],[9.632,48.132],[9.913,48.256],[10.345,47.995],[3.046,48.568],[8.982,49.785],[8.934,48.352],[9.094,49.854],[7.886,48.485],[8.206,50.327],[7.889,48.62],[7.905,47.733],[7.948,48.45],[6.861,49.34],[6.892,48.352],[6.615,50.1],[7.052,47.915],[5.839,48.43],[5.932,49.667],[6.038,48.292],[5.956,48.047],[5.849,49.03],[5.049,49.193],[4.918,47.917],[5.044,48.83],[4.734,48.995],[5.122,47.968],[5.044,49.138],[2.823,48.62],[3.017,48.602],[3.046,49.365],[4.118,48.925],[3.885,47.895],[3.812,48.917],[4.089,49.188],[3.972,47.99],[4.195,48.968],[3.89,48.727],[3.07,47.585],[3.133,48.97],[2.842,48.653],[2.852,48.665],[6.354,47.765],[5.733,48.483],[12.46,48.153],[11.756,47.877],[11.834,48.975],[6.189,48.44],[12.023,48.617],[12.28,48.415],[11.145,49.275],[11.834,48.725],[11.897,49.062],[8.289,49.33],[12.018,48.15],[5.131,48.373],[11.077,49.055],[5.568,48.52],[7.847,49.995],[12.411,48.142],[13.158,48.002],[10.374,48.46],[10.544,48.013],[12.013,48.083],[11.883,48.303],[10.951,48.72],[11.495,48.935],[11.645,50.195],[11.621,49.965],[12.547,47.93],[3.851,47.635],[11.936,47.995],[5.674,47.888],[11.674,48.693],[6.683,47.72],[12.096,48.545],[5.71,47.713],[2.173,47.623],[6.14,48.333],[10.457,48.438],[8.625,47.934],[11.857,48.12],[11.78,48.08],[5.839,49.367],[6.586,48.96],[5.65,47.663],[3.919,47.625],[7.614,47.547],[11.131,47.922],[12.222,48.315],[3.492,47.932],[7.013,48.48],[6.383,48.04],[4.19,48.153],[8.26,47.792],[11.975,48.097],[12.023,48.083],[5.694,49.142],[12.731,49.495],[12.251,49.635],[12.411,49.487],[12.6,49.322],[7.614,48.578],[12.319,48.385],[10.2,47.792],[5.742,49.175],[6.417,48.468],[9.792,47.663],[11.567,47.935],[11.926,47.712],[3.924,48.935],[4.244,49.083],[12.173,49.555],[11.364,48.958],[12.552,49.675],[6.349,48.055],[5.427,48.05],[10.132,48.425],[8.095,47.947],[11.732,47.712],[11.126,49.727],[11.936,49.36],[11.412,48.958],[5.791,48.028],[6.858,48.185],[12.144,48.04],[11.567,47.657],[12.251,47.767],[11.499,48.155],[11.95,48.222],[10.665,48.547],[4.772,47.608],[4.321,47.697],[10.36,47.83],[12.203,47.745],[11.994,47.847],[10.767,49.047],[11.787,48.818],[11.722,48.477],[5.781,48.972],[11.281,48.75],[11.931,48.96],[6.344,48.48],[8.323,47.847],[5.731,49.25],[6.712,48.293],[5.398,47.947],[4.452,48.708],[4.04,48.47],[4.758,48.157],[3.395,49.512],[3.589,48.242],[3.579,49.137],[3.507,47.748],[3.526,48.1],[3.152,50.002],[2.871,48.065],[2.367,49.1]],
+    current:[[2.401,49.102],[2.41,47.85],[2.095,48.995],[13.527,49.278],[4.651,48.02],[4.549,49.297],[5.025,49.097],[4.438,49.155],[4.089,49.695],[4.86,49.083],[4.811,47.938],[5.529,48.125],[12.3,48.797],[13.134,49.465],[2.794,50.273],[9.38,49.09],[4.443,49.09],[2.488,48.775],[2.449,48.922],[3.206,48.97],[3.06,48.392],[2.881,48.54],[2.716,49.078],[3.002,47.917],[2.338,48.578],[5.34,49.153],[9.487,50.05],[10.597,49.545],[5.956,47.72],[6.41,47.898],[6.383,48.097],[6.373,48.778],[6.577,48.805],[5.287,49.538],[5.306,48.005],[4.617,49.88],[4.641,49.667],[4.627,48.822],[4.472,49.093],[4.365,49.55],[3.342,49.075],[4.574,49.375],[5.078,48.968],[5.044,48.205],[5.277,48.038],[4.457,48.712],[4.307,48.38],[5.039,49.163],[4.709,47.685],[2.386,50.593],[5.0,47.472],[4.355,49.28],[4.418,48.123],[5.912,49.242],[13.856,47.99],[6.145,48.035],[3.051,47.555],[2.556,48.065],[2.561,49.065],[2.444,48.935],[2.444,49.572],[2.503,50.127],[2.886,47.945],[5.126,47.65],[5.951,48.6],[5.131,49.062],[3.822,48.385],[3.928,49.138],[5.243,49.815],[5.199,49.47],[4.952,49.225],[2.697,50.235],[4.37,47.285],[5.801,48.273],[7.888,48.425],[8.303,48.9],[7.173,49.545],[5.059,49.068],[2.609,48.388],[2.522,47.983],[2.861,48.8],[4.928,47.95],[4.384,49.477],[4.142,48.032],[5.864,47.945],[6.092,48.53],[2.541,47.955],[5.088,47.77],[4.496,48.0],[4.792,50.26],[5.839,48.07],[5.223,48.535],[5.437,48.343],[3.516,49.66],[2.697,47.623],[2.59,48.705],[2.362,48.335],[2.362,48.725],[2.561,48.568],[4.976,47.888],[4.336,48.35],[3.992,48.695],[2.731,48.76],[4.54,49.18],[2.706,50.235],[4.811,49.16],[4.903,49.75],[2.973,49.812],[3.487,48.097],[2.784,48.075],[3.07,48.248],[3.031,48.443],[4.966,48.443],[5.941,49.26],[9.943,49.392],[9.981,48.847],[9.933,49.553],[9.758,49.705],[8.934,47.682],[7.905,47.847],[7.105,48.188],[5.577,48.502],[6.087,49.2],[4.472,49.03],[4.253,48.252],[2.886,47.81],[6.271,48.595],[5.083,48.665],[3.162,0.0],[5.738,0.0],[5.995,0.0],[6.092,0.0],[6.159,0.0],[5.5,0.0],[4.792,0.0],[5.678,0.0],[8.546,0.0],[4.869,0.0],[5.839,0.0],[5.073,0.0],[4.646,0.0],[4.685,0.0],[5.665,0.0],[4.753,0.0],[5.136,0.0],[7.125,0.0],[9.778,0.0],[2.798,0.0],[3.439,0.0],[3.167,0.0],[5.713,0.0],[3.667,0.0],[11.32,0.0],[3.056,0.0],[2.478,0.0],[5.708,0.0],[3.526,0.0],[3.211,0.0],[5.524,0.0],[2.891,0.0],[2.774,0.0],[5.311,0.0],[3.007,0.0],[2.847,0.0],[4.089,0.0],[2.139,0.0],[3.303,0.0],[3.71,0.0],[5.078,0.0],[4.782,0.0],[2.357,0.0],[5.461,0.0],[5.548,0.0],[4.918,0.0],[5.131,0.0],[2.847,0.0],[5.494,0.0],[2.526,0.0],[4.644,0.0],[3.056,0.0],[9.118,0.0],[4.86,0.0],[5.175,0.0],[7.905,0.0],[7.804,0.0],[7.779,0.0],[5.762,0.0],[3.269,0.0],[2.963,0.0],[5.839,0.0],[5.728,0.0],[6.577,0.0],[7.755,0.0],[5.917,0.0],[5.786,0.0],[5.752,0.0],[3.41,0.0],[3.051,0.0],[3.007,0.0],[2.866,0.0],[4.7,0.0],[3.521,0.0]]
+  },
+  R129:{
+    meta:{detected:"2025-12-03",baseline_start:"2025-10-30",baseline_end:"2025-12-03",last_active:"2025-12-11",run_hours:16.5,icu_replacement:"No record",ilmor_replacement:"No record",baseline_std:0.7105,current_std:23.6112},
+    x_min:2.0,x_max:15.96,
+    baseline:[[2.828,48.65],[13.614,47.688],[2.701,49.263],[6.223,48.31],[2.11,48.508],[4.976,49.127],[5.015,49.227],[5.093,49.477],[5.025,47.653],[6.242,48.977],[9.913,48.203],[3.075,48.587],[15.83,47.945],[2.842,49.41],[15.544,48.565],[10.602,47.585],[14.86,48.81],[3.056,48.04],[14.865,48.947],[14.923,48.96],[13.784,49.075],[11.32,49.155],[14.254,48.828],[13.924,48.578],[10.946,48.597],[12.94,49.292],[6.32,49.133],[12.882,48.237],[5.35,48.443],[11.883,47.547],[2.774,48.303],[11.155,48.745],[11.883,49.1],[10.937,48.237],[10.956,47.782],[6.019,49.19],[10.893,47.938],[7.935,48.028],[9.938,48.917],[8.177,48.178],[9.753,49.807],[9.923,50.445],[8.905,47.94],[8.977,48.583],[7.018,48.52],[8.977,47.828],[3.899,49.745],[7.954,48.415],[7.988,49.2],[7.765,47.55],[8.007,49.788],[6.882,48.31],[6.906,49.37],[7.013,48.273],[6.712,47.977],[6.989,49.462],[6.989,49.08],[5.98,48.145],[5.922,48.455],[5.99,48.987],[5.912,48.042],[5.951,48.208],[4.346,48.833],[4.957,48.763],[4.991,47.91],[5.107,47.822],[5.088,51.185],[5.02,49.023],[4.079,48.388],[4.021,47.7],[3.977,49.775],[3.996,48.913],[3.201,49.13],[3.05,49.54],[2.973,48.672],[3.186,49.405],[2.905,49.038],[3.001,48.207],[6.14,47.645],[10.437,49.693],[10.326,48.617],[11.129,47.803],[11.915,49.134],[10.384,48.815],[6.159,47.845],[7.309,50.065],[12.77,48.358],[5.267,51.468],[3.511,49.54],[6.708,48.593],[6.082,47.99],[5.219,49.737],[5.083,48.917],[4.797,47.922],[5.708,48.05],[5.025,49.025],[5.165,48.78],[5.393,47.843],[4.898,47.765],[5.34,49.968],[5.277,49.038],[5.219,49.547],[5.068,47.91],[5.173,49.2],[5.036,48.486],[5.451,47.987],[5.347,50.156],[5.17,48.71],[5.028,48.05],[4.583,47.675],[5.723,49.4],[5.068,48.587],[5.301,48.06],[5.316,51.74],[5.0,48.77],[5.277,48.487],[5.112,47.513],[5.122,49.428],[5.573,48.962],[5.044,47.843],[5.728,49.663],[4.903,48.903],[4.612,48.237],[5.083,47.487],[6.111,49.22],[4.535,50.562],[5.02,47.87],[4.801,49.913],[5.447,49.05],[5.054,47.917],[4.574,47.64],[5.287,49.653],[5.17,48.233],[4.54,47.79],[4.758,49.828],[5.519,48.885],[5.146,48.322],[4.69,49.633],[5.427,49.307],[5.185,48.322],[5.0,47.812],[4.816,49.835],[5.16,48.913],[5.025,48.37],[5.291,47.513],[5.485,49.51],[5.204,48.525],[5.005,47.875],[4.889,49.87],[5.544,50.395],[5.088,48.465],[5.505,48.347],[5.18,49.27],[5.039,48.475],[5.253,47.873],[4.671,49.785],[5.126,48.858],[5.442,48.27],[5.199,47.883],[5.388,49.612],[4.957,48.76],[4.695,49.498],[5.194,50.002],[6.174,48.925],[4.38,48.16],[5.107,47.73],[4.855,49.358],[5.001,48.5],[4.934,47.897],[4.637,49.446],[5.374,48.953],[5.175,48.23],[4.501,47.775],[4.617,51.258],[5.461,48.945],[5.073,47.94],[4.738,49.65],[5.456,48.745],[4.375,48.212],[5.146,47.815],[5.063,49.572],[5.025,48.325],[4.932,47.843],[5.374,49.285],[5.393,49.005],[5.083,50.127],[4.952,47.508],[4.564,49.653],[5.471,48.42],[5.112,47.932],[5.335,49.413],[5.039,49.025],[4.753,48.315],[4.884,47.778],[5.476,49.623],[5.029,48.315],[4.666,47.925],[6.014,51.125],[4.874,47.843],[5.641,49.11],[5.126,49.142],[10.127,48.157],[5.16,47.708]],
+    current:[[2.663,49.462],[2.566,48.623],[5.345,48.4],[6.349,49.097],[3.875,48.85],[6.121,48.77],[5.466,49.803],[4.835,48.875],[13.216,50.788],[6.974,50.22],[10.985,47.995],[5.932,48.34],[6.019,48.383],[4.554,48.995],[4.258,49.97],[6.46,47.858],[6.242,48.82],[5.902,49.612],[3.662,48.367],[6.004,47.992],[13.881,48.665],[3.463,50.557],[4.098,49.568],[5.514,48.27],[4.359,48.193],[4.229,48.825],[9.414,48.392],[3.286,49.784],[4.244,51.125],[2.648,49.69],[5.694,48.977],[2.992,47.845],[4.283,48.657],[3.599,48.525],[3.696,48.758],[2.973,48.575],[2.837,48.485],[5.039,49.557],[5.068,49.538],[5.131,47.267],[5.107,48.047],[5.447,48.102],[5.151,48.078],[2.929,49.54],[5.063,49.447],[5.296,47.568],[5.156,48.45],[4.874,47.718],[5.209,48.08],[4.966,48.805],[2.119,48.025],[3.283,47.695],[4.787,51.62],[2.716,48.358],[2.178,48.365],[4.03,48.545],[3.846,47.935],[4.084,47.972],[4.156,48.608],[4.326,49.138],[2.347,49.852],[6.14,48.745],[7.377,49.89],[6.688,47.888],[4.709,48.595],[4.258,50.193],[2.173,48.32],[3.692,48.818],[3.744,48.097],[3.279,48.792],[2.134,47.8],[3.671,0.0],[2.406,0.0],[10.035,0.0],[9.972,0.0],[10.03,0.0],[3.201,0.0],[4.865,0.0],[5.039,0.0],[5.029,0.0],[5.408,0.0],[2.459,0.0],[2.44,0.0],[3.681,48.925],[7.765,49.465],[5.32,49.125],[2.537,47.82],[2.318,0.0],[2.988,0.0],[5.223,0.0],[4.913,0.0],[4.312,0.0],[4.035,0.0],[4.991,0.0],[4.966,0.0],[2.9,0.0],[8.284,0.0],[5.81,0.0],[3.089,0.0],[2.876,0.0],[5.02,0.0],[4.991,0.0],[4.321,0.0],[5.99,0.0],[2.207,0.0],[5.844,0.0],[5.733,0.0],[3.249,0.0],[5.869,0.0],[3.812,0.0],[3.89,0.0],[2.144,0.0],[3.186,0.0],[2.522,0.0],[2.566,0.0],[4.743,0.0],[5.025,0.0],[5.243,0.0],[3.031,0.0],[2.609,0.0],[4.908,0.0],[5.097,0.0],[2.667,0.0],[3.104,0.0],[2.789,0.0],[5.122,0.0],[5.296,0.0],[6.252,0.0],[9.807,0.0],[9.899,0.0],[9.894,0.0],[10.069,0.0],[9.671,0.0],[4.622,0.0],[5.296,0.0],[4.947,0.0],[2.362,0.0],[4.137,0.0],[11.543,0.0],[9.695,0.0],[10.049,0.0],[10.748,0.0],[9.884,0.0],[9.909,0.0],[6.218,0.0],[2.44,0.0],[6.184,0.0],[6.111,0.0],[4.423,0.0],[4.981,0.0],[5.82,0.0],[7.163,0.0],[4.569,0.0],[5.078,0.0],[5.107,0.0],[4.903,0.0],[5.083,0.0],[5.277,0.0],[3.075,0.0],[3.448,0.0],[3.148,0.0],[2.92,0.0],[3.317,0.0],[6.809,0.0],[5.044,0.0],[5.311,0.0],[5.209,0.0],[2.818,0.0],[3.274,0.0],[4.389,0.0],[4.957,0.0],[4.869,0.0],[3.856,0.0],[3.279,0.0],[5.762,0.0],[4.952,0.0],[2.042,0.0],[4.85,0.0],[2.91,0.0],[2.74,0.0],[6.092,0.0],[5.573,0.0],[5.558,0.0],[3.516,0.0],[5.287,0.0],[8.138,0.0],[5.388,0.0],[7.614,0.0],[5.791,0.0],[3.788,0.0],[8.104,0.0],[5.999,0.0],[5.723,0.0],[6.329,0.0],[6.038,0.0],[5.427,0.0],[3.175,0.0],[3.342,0.0],[4.365,0.0],[2.942,0.0],[3.167,0.0],[5.277,0.0]]
+  }
+};
+
+var currentIcuBoat='R130';
+var icuChartInst=null;
+
+function buildIcuBoatBtns(){
+  document.getElementById('icu-boat-btns').innerHTML=Object.keys(ICU_DATA).map(function(bid){
+    var m=ICU_DATA[bid].meta;
+    var stdIncrease=((m.current_std-m.baseline_std)/m.baseline_std*100).toFixed(0);
+    var active=bid===currentIcuBoat;
+    return '<button class="alert-boat-btn'+(active?' active':'')+'" style="'+(active?'background:#1a0d3a;border-color:#a78bfa':'')+'" onclick="setIcuBoat(\''+bid+'\')">'+
+      '<div class="alert-boat-name" style="color:#d8b4fe">Boat '+bid+'</div>'+
+      '<div class="alert-boat-det">Detected: '+m.detected+'</div>'+
+      '<div class="alert-boat-slope" style="color:#a78bfa">&#8593;'+stdIncrease+'x volatility</div>'+
+      '<div class="alert-boat-last">Last active: '+m.last_active+'</div>'+
+    '</button>';
+  }).join('');
+}
+
+function buildIcuChart(){
+  var d=ICU_DATA[currentIcuBoat];
+  var m=d.meta;
+  var stdIncrease=((m.current_std-m.baseline_std)/m.baseline_std*100).toFixed(0);
+  var zeroPct=(d.current.filter(function(p){return p[1]===0.0;}).length/d.current.length*100).toFixed(0);
+
+  document.getElementById('icu-scatter-title').textContent='Boat '+currentIcuBoat;
+  document.getElementById('icu-scatter-meta').innerHTML=[
+    ['Detected',m.detected],['Last Active',m.last_active],
+    ['Run Hours',m.run_hours+' hrs'],['Zero-Volt Pts',zeroPct+'% of current']
+  ].map(function(item){
+    return '<div><div style="font-size:10px;color:'+C.MUTED+';letter-spacing:1px;text-transform:uppercase">'+item[0]+'</div>'+
+      '<div style="font-size:13px;font-weight:700;color:'+(item[0]==='Zero-Volt Pts'?'#a78bfa':C.TEXT)+';font-family:\'DM Mono\',monospace">'+item[1]+'</div></div>';
+  }).join('');
+
+  document.getElementById('icu-info-bar').innerHTML=
+    '<span>Baseline: <span style="color:'+C.GREEN+';font-weight:600">'+m.baseline_start+' \u2192 '+m.baseline_end+'</span></span>'+
+    '<span>Baseline STD: <span style="color:'+C.GREEN+';font-family:\'DM Mono\',monospace">'+m.baseline_std+'V</span></span>'+
+    '<span>Current STD: <span style="color:#a78bfa;font-family:\'DM Mono\',monospace">'+m.current_std+'V</span></span>'+
+    '<span>ICU Replacement: <span style="color:'+C.MUTED+'">'+m.icu_replacement+'</span></span>';
+
+  if(icuChartInst) icuChartInst.destroy();
+  icuChartInst=new Chart(document.getElementById('icuScatterChart'),{
+    type:'scatter',
+    data:{datasets:[
+      {label:'Baseline',data:d.baseline.map(function(p){return{x:p[0],y:p[1]};}),backgroundColor:C.GREEN+'55',pointRadius:2,pointHoverRadius:3},
+      {label:'Current (normal)',data:d.current.filter(function(p){return p[1]>0;}).map(function(p){return{x:p[0],y:p[1]};}),backgroundColor:'#a78bfa66',pointRadius:2,pointHoverRadius:3},
+      {label:'Current (0V failure)',data:d.current.filter(function(p){return p[1]===0;}).map(function(p){return{x:p[0],y:p[1]};}),backgroundColor:'#ef444488',pointRadius:3,pointHoverRadius:4}
+    ]},
+    options:{
+      responsive:true,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){return ctx.parsed.x.toFixed(2)+' kts \u2192 '+ctx.parsed.y.toFixed(2)+' V';}}}},
+      scales:{
+        x:{type:'linear',title:{display:true,text:'Speed (knots)',color:C.MUTED},grid:{color:C.BORDER},ticks:{color:C.MUTED,font:{size:10}}},
+        y:{type:'linear',title:{display:true,text:'ICU Voltage (V)',color:C.MUTED},grid:{color:C.BORDER},ticks:{color:C.MUTED,font:{size:10}},min:0}
+      }
+    }
+  });
+
+  // Variability comparison
+  document.getElementById('icu-var-grid').innerHTML=[
+    ['Baseline STD',m.baseline_std+' V',C.GREEN],
+    ['Current STD',m.current_std+' V','#a78bfa'],
+    ['STD increase',stdIncrease+'x','#a78bfa'],
+    ['Zero-V events',zeroPct+'% of pts','#ef4444'],
+    ['Baseline period',m.baseline_start,C.MUTED],
+    ['Detection date',m.detected,'#a78bfa']
+  ].map(function(item){
+    return '<div><div class="reg-label">'+item[0]+'</div><div class="reg-val" style="color:'+item[2]+'">'+item[1]+'</div></div>';
+  }).join('');
+
+  // Timeline
+  document.getElementById('icu-timeline').innerHTML=[
+    ['Baseline Period',m.baseline_start+' \u2192 '+m.baseline_end,C.GREEN],
+    ['Degradation Detected',m.detected,'#a78bfa'],
+    ['Run Hours at Detection',m.run_hours+' hrs',C.TEXT],
+    ['Last Active',m.last_active,C.TEXT],
+    ['ICU Replacement',m.icu_replacement,m.icu_replacement!=='No record'?C.AMBER:C.MUTED],
+    ['Ilmor Replacement',m.ilmor_replacement,m.ilmor_replacement!=='No record'?C.AMBER:C.MUTED]
+  ].map(function(item){
+    return '<div class="info-row"><span style="font-size:11px;color:'+C.MUTED+'">'+item[0]+'</span>'+
+      '<span style="font-size:11px;font-weight:600;color:'+item[2]+';font-family:\'DM Mono\',monospace">'+item[1]+'</span></div>';
+  }).join('');
+}
+
+function setIcuBoat(bid){currentIcuBoat=bid;buildIcuBoatBtns();buildIcuChart();}
+buildIcuBoatBtns();
+buildIcuChart();
+
+// ICU overview cards (rendered here so ICU_DATA is already defined)
+document.getElementById('ov-icu-cards').innerHTML=Object.keys(ICU_DATA).map(function(bid){
+  var m=ICU_DATA[bid].meta;
+  var d=ICU_DATA[bid];
+  var stdIncrease=((m.current_std-m.baseline_std)/m.baseline_std*100).toFixed(0);
+  var zeroPct=(d.current.filter(function(p){return p[1]===0.0;}).length/d.current.length*100).toFixed(0);
+  return '<div class="ov-alert-card" style="background:#0d0a1a;border-color:#a78bfa33">'+
+    '<div class="ov-alert-header"><div class="ov-dot" style="background:#a78bfa;box-shadow:0 0 6px #a78bfa"></div>'+
+    '<span class="ov-boat-id" style="color:#d8b4fe">Boat '+bid+'</span>'+
+    '<span class="ov-slope-badge" style="color:#a78bfa;background:#2d1a5e">&#8593;'+stdIncrease+'x volatility</span></div>'+
+    '<div class="ov-stats">'+
+    '<div><div class="ov-stat-label">Detected</div><div class="ov-stat-val">'+m.detected+'</div></div>'+
+    '<div><div class="ov-stat-label">Last Active</div><div class="ov-stat-val">'+m.last_active+'</div></div>'+
+    '<div><div class="ov-stat-label">Run Hours</div><div class="ov-stat-val">'+m.run_hours+' hrs</div></div>'+
+    '<div><div class="ov-stat-label">Baseline STD</div><div class="ov-stat-val">'+m.baseline_std+'V</div></div>'+
+    '<div><div class="ov-stat-label">Current STD</div><div class="ov-stat-val" style="color:#a78bfa">'+m.current_std+'V</div></div>'+
+    '<div><div class="ov-stat-label">Zero-V Events</div><div class="ov-stat-val" style="color:#ef4444">'+zeroPct+'% pts</div></div>'+
+    '</div>'+
+    '<button class="view-chart-btn" style="border-color:#a78bfa;color:#d8b4fe" onclick="switchTab(\'icu\');setIcuBoat(\''+bid+'\')">View full chart &rarr;</button>'+
+  '</div>';
+}).join('');
+
+function switchTab(tab){
+  var tabs=['overview','alerts','icu','details'];
+  tabs.forEach(function(t){
+    document.getElementById('tab-'+t).className=tab===t?'active':'';
+    document.getElementById('tab-btn-'+t).className=tab===t?'tab active':'tab';
+  });
+  if(tab==='alerts') setTimeout(function(){buildScatterChart();},50);
+  if(tab==='icu') setTimeout(function(){buildIcuChart();},50);
+}
+</script>
+</body>
+</html>
