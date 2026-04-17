@@ -22,7 +22,7 @@ h1{font-size:26px;font-weight:800;color:#e8f4ff;letter-spacing:-0.5px}
 .tab.active{color:#0ef0c4;border-bottom-color:#0ef0c4}
 .tab:hover:not(.active){color:#cde0f0}
 .badge{background:#7f1d1d;color:#fca5a5;font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px}
-.kpi-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:16px;margin-bottom:28px}
+.kpi-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:12px;margin-bottom:28px}
 .kpi-card{background:#0b1623;border:1px solid #162435;border-radius:12px;padding:20px 16px;position:relative;overflow:hidden}
 .kpi-accent{position:absolute;top:0;left:0;width:3px;height:100%;border-radius:12px 0 0 12px}
 .kpi-label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#8899aa;margin-bottom:8px}
@@ -40,6 +40,8 @@ h1{font-size:26px;font-weight:800;color:#e8f4ff;letter-spacing:-0.5px}
 .vessel-bar{height:100%;border-radius:3px}
 .vessel-val{width:52px;font-size:9px;text-align:right;flex-shrink:0;font-family:'DM Mono',monospace}
 .vessel-date{width:72px;font-size:9px;color:#8899aa;text-align:right;flex-shrink:0;font-family:'DM Mono',monospace}
+.vessel-row{position:relative}
+.vessel-tooltip{position:fixed;z-index:1000;background:#0b1623;border:1px solid #1e3a5f;border-radius:8px;padding:8px 12px;font-size:10px;font-family:'DM Mono',monospace;color:#cde0f0;white-space:nowrap;box-shadow:0 4px 20px #000a;max-height:200px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#2a3f55 transparent;display:none}
 .metric-btns{display:flex;gap:6px}
 .metric-btn{background:transparent;border:1px solid #162435;color:#8899aa;border-radius:6px;padding:4px 10px;font-size:10px;cursor:pointer;letter-spacing:1px;font-weight:600;font-family:inherit}
 .metric-btn.active-teal{background:#0ef0c422;border-color:#0ef0c4;color:#0ef0c4}
@@ -133,7 +135,6 @@ h1{font-size:26px;font-weight:800;color:#e8f4ff;letter-spacing:-0.5px}
         <div class="panel-title" style="margin-bottom:0"><div class="panel-title-bar"></div><span class="panel-title-text">All Vessels (78)</span></div>
         <div class="metric-btns">
           <button class="metric-btn active-teal" onclick="setMetric('water_dist',this)">Total NM</button>
-          <button class="metric-btn" onclick="setMetric('last_water',this)">Last Water Date</button>
         </div>
       </div>
       <div style="display:flex;gap:8px;padding:0 2px 5px;border-bottom:1px solid #162435;margin-bottom:4px">
@@ -150,6 +151,7 @@ h1{font-size:26px;font-weight:800;color:#e8f4ff;letter-spacing:-0.5px}
           <button onclick="setSortCol('water_hrs')" id="sort-btn-water_hrs" style="background:none;border:none;cursor:pointer;font-size:9px;color:#a78bfa;letter-spacing:1px;text-transform:uppercase;width:100%;text-align:right;padding:0;font-family:inherit">HRS <span id="sort-arrow-water_hrs"></span></button>
         </div>
       </div>
+      <div style="font-size:9px;color:#8899aa;margin-bottom:5px;text-align:right;opacity:0.7">&#128197; click row for water dates</div>
       <div class="vessel-scroll" id="vessel-list"></div>
       <div class="legend-row" style="margin-top:10px">
         <span><span style="color:#0ef0c4">&#9632;</span> Rampages</span>
@@ -439,98 +441,98 @@ var MONTHLY=[
 ];
 
 var ALL_BOATS=[
-  {id:"R108",category:"Rampages",water_dist:510.4,water_moving_dist:316.4,water_hrs:269.0,last_water:"2026-04-10"},
-  {id:"R122",category:"Rampages",water_dist:388.2,water_moving_dist:322.2,water_hrs:385.5,last_water:"2026-04-03"},
-  {id:"R112",category:"Rampages",water_dist:348.8,water_moving_dist:300.1,water_hrs:177.6,last_water:"2026-04-10"},
-  {id:"R105",category:"Rampages",water_dist:314.0,water_moving_dist:273.9,water_hrs:239.9,last_water:"2026-04-10"},
-  {id:"R124",category:"Rampages",water_dist:293.7,water_moving_dist:236.5,water_hrs:126.7,last_water:"2026-03-27"},
-  {id:"R121",category:"Rampages",water_dist:286.8,water_moving_dist:231.7,water_hrs:146.3,last_water:"2026-04-01"},
-  {id:"R101",category:"Rampages",water_dist:271.7,water_moving_dist:248.2,water_hrs:92.4,last_water:"2026-03-10"},
-  {id:"R114",category:"Rampages",water_dist:268.8,water_moving_dist:217.3,water_hrs:504.8,last_water:"2026-04-10"},
-  {id:"R106",category:"Rampages",water_dist:266.8,water_moving_dist:242.5,water_hrs:93.2,last_water:"2026-04-01"},
-  {id:"R117",category:"Rampages",water_dist:264.6,water_moving_dist:229.6,water_hrs:131.3,last_water:"2026-04-02"},
-  {id:"R109",category:"Rampages",water_dist:251.2,water_moving_dist:224.2,water_hrs:127.0,last_water:"2026-04-08"},
-  {id:"R100",category:"Rampages",water_dist:248.6,water_moving_dist:198.1,water_hrs:136.6,last_water:"2026-04-10"},
-  {id:"R118",category:"Rampages",water_dist:247.9,water_moving_dist:199.2,water_hrs:206.5,last_water:"2025-12-11"},
-  {id:"R110",category:"Rampages",water_dist:238.5,water_moving_dist:209.0,water_hrs:126.4,last_water:"2026-04-01"},
-  {id:"R115",category:"Rampages",water_dist:230.8,water_moving_dist:200.5,water_hrs:109.4,last_water:"2026-04-08"},
-  {id:"R119",category:"Rampages",water_dist:227.4,water_moving_dist:198.3,water_hrs:116.7,last_water:"2025-12-12"},
-  {id:"R103",category:"Rampages",water_dist:218.1,water_moving_dist:201.7,water_hrs:73.3,last_water:"2026-03-26"},
-  {id:"R104",category:"Rampages",water_dist:206.2,water_moving_dist:186.1,water_hrs:105.3,last_water:"2026-03-26"},
-  {id:"R15",category:"Rampages",water_dist:197.3,water_moving_dist:174.7,water_hrs:64.1,last_water:"2026-01-14"},
-  {id:"R113",category:"Rampages",water_dist:194.2,water_moving_dist:143.4,water_hrs:114.2,last_water:"2026-03-19"},
-  {id:"R102",category:"Rampages",water_dist:187.4,water_moving_dist:171.4,water_hrs:60.9,last_water:"2026-03-10"},
-  {id:"R120",category:"Rampages",water_dist:174.0,water_moving_dist:153.2,water_hrs:77.6,last_water:"2026-03-31"},
-  {id:"R123",category:"Rampages",water_dist:169.6,water_moving_dist:149.8,water_hrs:77.4,last_water:"2026-03-26"},
-  {id:"SEAHOUND_1",category:"Sims",water_dist:157.7,water_moving_dist:155.4,water_hrs:43.8,last_water:"2026-01-20"},
-  {id:"R111",category:"Rampages",water_dist:152.4,water_moving_dist:137.5,water_hrs:63.9,last_water:"2025-10-15"},
-  {id:"R116",category:"Rampages",water_dist:147.3,water_moving_dist:119.9,water_hrs:67.3,last_water:"2026-04-10"},
-  {id:"R34",category:"Rampages",water_dist:134.7,water_moving_dist:123.3,water_hrs:46.8,last_water:"2025-11-13"},
-  {id:"R107",category:"Rampages",water_dist:124.0,water_moving_dist:114.3,water_hrs:44.8,last_water:"2025-09-13"},
-  {id:"TIDEMAN-1",category:"Other",water_dist:110.8,water_moving_dist:97.2,water_hrs:52.8,last_water:"2026-04-10"},
-  {id:"R30",category:"Rampages",water_dist:101.0,water_moving_dist:80.7,water_hrs:63.4,last_water:"2026-04-08"},
-  {id:"R125",category:"Rampages",water_dist:100.6,water_moving_dist:74.6,water_hrs:59.1,last_water:"2025-12-11"},
-  {id:"R129",category:"Rampages",water_dist:99.7,water_moving_dist:71.1,water_hrs:36.5,last_water:"2025-12-11"},
-  {id:"R35",category:"Rampages",water_dist:78.1,water_moving_dist:65.9,water_hrs:30.5,last_water:"2026-01-21"},
-  {id:"R25",category:"Rampages",water_dist:70.3,water_moving_dist:60.4,water_hrs:31.1,last_water:"2026-03-26"},
-  {id:"R128",category:"Rampages",water_dist:65.9,water_moving_dist:46.2,water_hrs:33.5,last_water:"2025-12-11"},
-  {id:"R135",category:"Rampages",water_dist:63.8,water_moving_dist:50.9,water_hrs:27.5,last_water:"2026-03-31"},
-  {id:"R130",category:"Rampages",water_dist:59.7,water_moving_dist:47.2,water_hrs:21.6,last_water:"2025-12-11"},
-  {id:"R138",category:"Rampages",water_dist:58.9,water_moving_dist:45.7,water_hrs:34.9,last_water:"2026-04-01"},
-  {id:"ATLAS",category:"Other",water_dist:56.0,water_moving_dist:51.9,water_hrs:21.3,last_water:"2026-03-09"},
-  {id:"MCRIB",category:"Other",water_dist:55.0,water_moving_dist:50.0,water_hrs:22.3,last_water:"2026-03-27"},
-  {id:"R136",category:"Rampages",water_dist:54.1,water_moving_dist:43.5,water_hrs:26.3,last_water:"2026-03-26"},
-  {id:"R134",category:"Rampages",water_dist:53.9,water_moving_dist:43.4,water_hrs:26.7,last_water:"2026-04-08"},
-  {id:"R4",category:"Rampages",water_dist:50.0,water_moving_dist:49.0,water_hrs:10.9,last_water:"2025-09-18"},
-  {id:"R14",category:"Rampages",water_dist:47.8,water_moving_dist:44.4,water_hrs:16.2,last_water:"2025-09-07"},
-  {id:"R126",category:"Rampages",water_dist:43.9,water_moving_dist:36.4,water_hrs:19.7,last_water:"2025-12-11"},
-  {id:"SB-36",category:"Other",water_dist:42.3,water_moving_dist:39.7,water_hrs:9.7,last_water:"2026-02-20"},
-  {id:"R139",category:"Rampages",water_dist:38.4,water_moving_dist:32.1,water_hrs:17.1,last_water:"2026-04-03"},
-  {id:"R127",category:"Rampages",water_dist:32.2,water_moving_dist:29.6,water_hrs:73.3,last_water:"2025-12-11"},
-  {id:"R137",category:"Rampages",water_dist:32.1,water_moving_dist:25.7,water_hrs:18.5,last_water:"2026-04-02"},
-  {id:"R37",category:"Rampages",water_dist:28.3,water_moving_dist:23.4,water_hrs:16.4,last_water:"2025-07-10"},
-  {id:"R39",category:"Rampages",water_dist:27.3,water_moving_dist:22.9,water_hrs:13.4,last_water:"2025-07-10"},
-  {id:"FRIENDLY",category:"Other",water_dist:26.2,water_moving_dist:22.9,water_hrs:7.4,last_water:"2026-03-10"},
-  {id:"R140",category:"Rampages",water_dist:17.8,water_moving_dist:14.9,water_hrs:8.6,last_water:"2026-03-13"},
-  {id:"R42",category:"Rampages",water_dist:17.7,water_moving_dist:16.1,water_hrs:6.4,last_water:"2025-06-27"},
-  {id:"R201",category:"Rampages",water_dist:17.4,water_moving_dist:14.0,water_hrs:6.8,last_water:"2026-04-10"},
-  {id:"R36",category:"Rampages",water_dist:14.6,water_moving_dist:12.6,water_hrs:7.5,last_water:"2025-07-31"},
-  {id:"R38",category:"Rampages",water_dist:14.1,water_moving_dist:10.4,water_hrs:47.4,last_water:"2025-09-09"},
-  {id:"HOSTILE",category:"Other",water_dist:13.7,water_moving_dist:10.6,water_hrs:5.1,last_water:"2026-03-10"},
-  {id:"R11",category:"Rampages",water_dist:12.8,water_moving_dist:11.3,water_hrs:7.9,last_water:"2025-09-26"},
-  {id:"PLASTIC-1",category:"Rampages",water_dist:12.8,water_moving_dist:11.4,water_hrs:6.5,last_water:"2026-03-20"},
-  {id:"R142",category:"Rampages",water_dist:11.8,water_moving_dist:7.7,water_hrs:4.7,last_water:"2026-04-07"},
-  {id:"JESSE-1",category:"Other",water_dist:9.6,water_moving_dist:7.9,water_hrs:6.8,last_water:"2026-03-13"},
-  {id:"R145",category:"Rampages",water_dist:6.9,water_moving_dist:5.4,water_hrs:2.4,last_water:"2026-04-10"},
-  {id:"TEST",category:"Sims",water_dist:6.7,water_moving_dist:4.2,water_hrs:6.2,last_water:"2025-09-10"},
-  {id:"R252",category:"Rampages",water_dist:6.5,water_moving_dist:5.9,water_hrs:2.1,last_water:"2025-09-09"},
-  {id:"R141",category:"Rampages",water_dist:5.5,water_moving_dist:4.2,water_hrs:2.5,last_water:"2026-03-17"},
-  {id:"R143",category:"Rampages",water_dist:4.7,water_moving_dist:4.0,water_hrs:1.3,last_water:"2026-04-09"},
-  {id:"R147",category:"Rampages",water_dist:4.6,water_moving_dist:3.9,water_hrs:1.4,last_water:"2026-04-10"},
-  {id:"R41",category:"Rampages",water_dist:4.2,water_moving_dist:2.3,water_hrs:2.6,last_water:"2025-06-26"},
-  {id:"R131",category:"Rampages",water_dist:3.6,water_moving_dist:3.2,water_hrs:1.7,last_water:"2025-12-18"},
-  {id:"R133",category:"Rampages",water_dist:3.4,water_moving_dist:3.0,water_hrs:1.3,last_water:"2025-12-18"},
-  {id:"R132",category:"Rampages",water_dist:2.1,water_moving_dist:1.8,water_hrs:0.9,last_water:"2025-12-18"},
-  {id:"R144",category:"Rampages",water_dist:1.1,water_moving_dist:0.3,water_hrs:0.6,last_water:"2026-04-10"},
-  {id:"FULL-RAMPAGE-HIL-1",category:"Sims",water_dist:0.9,water_moving_dist:0.2,water_hrs:0.2,last_water:"2025-10-07"},
-  {id:"R146",category:"Rampages",water_dist:0.2,water_moving_dist:0.2,water_hrs:0.0,last_water:"2026-04-08"},
-  {id:"SIM-LOCAL",category:"Sims",water_dist:0.1,water_moving_dist:0.0,water_hrs:4.3,last_water:"2025-10-17"},
-  {id:"R40",category:"Rampages",water_dist:0.0,water_moving_dist:0.0,water_hrs:0.0,last_water:"2025-08-15"},
-  {id:"SEAHOUND-1",category:"Sims",water_dist:0.0,water_moving_dist:0.0,water_hrs:0.0,last_water:"2026-03-12"},
-  {id:"R12",category:"Rampages",water_dist:0.0,water_moving_dist:0.0,water_hrs:0.0,last_water:null},
-  {id:"R13",category:"Rampages",water_dist:0.0,water_moving_dist:0.0,water_hrs:0.0,last_water:null},
-  {id:"R18",category:"Rampages",water_dist:0.0,water_moving_dist:0.0,water_hrs:0.0,last_water:null},
-  {id:"R19",category:"Rampages",water_dist:0.0,water_moving_dist:0.0,water_hrs:0.0,last_water:null},
-  {id:"R20",category:"Rampages",water_dist:0.0,water_moving_dist:0.0,water_hrs:0.0,last_water:null},
-  {id:"R21",category:"Rampages",water_dist:0.0,water_moving_dist:0.0,water_hrs:0.0,last_water:null},
-  {id:"R22",category:"Rampages",water_dist:0.0,water_moving_dist:0.0,water_hrs:0.0,last_water:null},
-  {id:"R23",category:"Rampages",water_dist:0.0,water_moving_dist:0.0,water_hrs:0.0,last_water:null},
-  {id:"R24",category:"Rampages",water_dist:0.0,water_moving_dist:0.0,water_hrs:0.0,last_water:null},
-  {id:"R26",category:"Rampages",water_dist:0.0,water_moving_dist:0.0,water_hrs:0.0,last_water:null},
-  {id:"R27",category:"Rampages",water_dist:0.0,water_moving_dist:0.0,water_hrs:0.0,last_water:null},
-  {id:"R28",category:"Rampages",water_dist:0.0,water_moving_dist:0.0,water_hrs:0.0,last_water:null},
-  {id:"R29",category:"Rampages",water_dist:0.0,water_moving_dist:0.0,water_hrs:0.0,last_water:null},
-  {id:"R32",category:"Rampages",water_dist:0.0,water_moving_dist:0.0,water_hrs:0.0,last_water:null}
+  {id:"R108",category:"Rampages",water_dist:510.4,water_moving_dist:316.4,water_hrs:269.0,last_water:"2026-04-10",water_dates:["2025-07-02", "2025-07-03", "2025-07-07", "2025-07-29", "2025-07-31", "2025-08-05", "2025-08-07", "2025-08-19", "2025-08-20", "2025-08-25", "2025-08-26", "2025-08-28", "2025-09-11", "2025-09-25", "2025-09-26", "2025-11-03", "2025-11-13", "2025-11-14", "2025-11-15", "2025-11-16", "2025-11-20", "2025-11-21", "2025-11-24", "2025-11-25", "2025-12-11", "2025-12-17", "2025-12-18", "2026-01-05", "2026-01-09", "2026-01-13", "2026-01-21", "2026-01-22", "2026-01-30", "2026-02-03", "2026-02-04", "2026-02-10", "2026-02-19", "2026-02-26", "2026-02-27", "2026-03-02", "2026-03-05", "2026-03-13", "2026-03-18", "2026-03-19", "2026-03-31", "2026-04-02", "2026-04-03", "2026-04-06", "2026-04-08", "2026-04-10"]},
+  {id:"R122",category:"Rampages",water_dist:388.2,water_moving_dist:322.2,water_hrs:385.5,last_water:"2026-04-03",water_dates:["2025-08-28", "2025-09-02", "2025-09-04", "2025-09-05", "2025-09-08", "2025-09-09", "2025-09-16", "2025-09-17", "2025-09-18", "2025-10-22", "2025-10-30", "2025-11-14", "2025-11-19", "2025-11-20", "2025-12-01", "2025-12-02", "2025-12-03", "2025-12-11", "2025-12-12", "2026-01-06", "2026-01-08", "2026-01-09", "2026-01-12", "2026-01-14", "2026-01-15", "2026-01-16", "2026-01-21", "2026-01-23", "2026-01-24", "2026-01-25", "2026-01-26", "2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-01-31", "2026-02-01", "2026-02-02", "2026-02-03", "2026-02-05", "2026-02-10", "2026-02-12", "2026-02-13", "2026-02-19", "2026-02-20", "2026-02-26", "2026-02-27", "2026-03-02", "2026-03-05", "2026-03-12", "2026-03-13", "2026-03-18", "2026-03-19", "2026-04-03"]},
+  {id:"R112",category:"Rampages",water_dist:348.8,water_moving_dist:300.1,water_hrs:177.6,last_water:"2026-04-10",water_dates:["2025-07-09", "2025-07-30", "2025-08-04", "2025-08-25", "2025-08-26", "2025-08-27", "2025-08-28", "2025-09-02", "2025-09-09", "2025-09-15", "2025-09-16", "2025-09-17", "2025-09-22", "2025-09-24", "2025-09-26", "2025-09-29", "2025-09-30", "2025-10-01", "2025-10-02", "2025-10-03", "2025-10-06", "2025-10-07", "2025-10-10", "2025-10-16", "2025-10-20", "2025-10-21", "2025-10-22", "2025-10-23", "2025-10-24", "2025-10-27", "2025-10-28", "2025-10-29", "2025-10-30", "2025-10-31", "2025-11-03", "2025-11-04", "2025-11-05", "2025-11-07", "2025-11-20", "2025-12-12", "2025-12-15", "2025-12-16", "2025-12-17", "2025-12-18", "2025-12-19", "2026-01-05", "2026-01-09", "2026-01-13", "2026-01-22", "2026-01-29", "2026-01-30", "2026-02-10", "2026-02-26", "2026-03-02", "2026-03-05", "2026-03-18", "2026-03-19", "2026-03-31", "2026-04-02", "2026-04-08", "2026-04-10"]},
+  {id:"R105",category:"Rampages",water_dist:314.0,water_moving_dist:273.9,water_hrs:239.9,last_water:"2026-04-10",water_dates:["2025-07-08", "2025-07-10", "2025-08-12", "2025-08-13", "2025-08-14", "2025-08-15", "2025-08-18", "2025-08-19", "2025-08-20", "2025-08-21", "2025-08-22", "2025-08-25", "2025-08-26", "2025-08-27", "2025-09-02", "2025-09-03", "2025-09-04", "2025-09-05", "2025-09-08", "2025-09-22", "2025-09-23", "2025-09-24", "2025-09-25", "2025-09-26", "2025-11-13", "2025-11-14", "2025-11-15", "2025-11-16", "2025-11-17", "2025-11-18", "2025-11-19", "2025-12-01", "2026-01-14", "2026-01-15", "2026-02-20", "2026-03-02", "2026-03-19", "2026-03-31", "2026-04-02", "2026-04-03", "2026-04-06", "2026-04-08", "2026-04-10"]},
+  {id:"R124",category:"Rampages",water_dist:293.7,water_moving_dist:236.5,water_hrs:126.7,last_water:"2026-03-27",water_dates:["2025-09-18", "2025-09-23", "2025-09-24", "2025-09-25", "2025-09-30", "2025-10-02", "2025-10-03", "2025-10-10", "2025-10-16", "2025-10-20", "2025-10-21", "2025-10-22", "2025-10-23", "2025-10-24", "2025-11-03", "2025-11-05", "2025-11-07", "2025-11-10", "2025-11-12", "2025-11-14", "2025-11-17", "2025-11-18", "2025-11-19", "2025-11-20", "2025-11-24", "2025-11-25", "2025-11-27", "2025-11-28", "2025-11-29", "2025-12-01", "2025-12-02", "2025-12-04", "2025-12-05", "2025-12-09", "2025-12-10", "2025-12-11", "2025-12-12", "2025-12-15", "2025-12-16", "2025-12-17", "2026-01-06", "2026-01-07", "2026-01-08", "2026-01-09", "2026-01-12", "2026-01-13", "2026-01-14", "2026-01-15", "2026-01-16", "2026-01-17", "2026-01-18", "2026-01-19", "2026-01-20", "2026-01-22", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-07", "2026-02-08", "2026-02-09", "2026-02-11", "2026-02-12", "2026-02-13", "2026-02-17", "2026-02-19", "2026-02-20", "2026-02-27", "2026-03-04", "2026-03-06", "2026-03-27"]},
+  {id:"R121",category:"Rampages",water_dist:286.8,water_moving_dist:231.7,water_hrs:146.3,last_water:"2026-04-01",water_dates:["2025-08-25", "2025-08-26", "2025-09-08", "2025-09-09", "2025-09-10", "2025-09-11", "2025-09-12", "2025-09-15", "2025-09-16", "2025-09-18", "2025-09-19", "2025-09-24", "2025-09-25", "2025-09-29", "2025-09-30", "2025-10-01", "2025-10-02", "2025-10-03", "2025-10-04", "2025-10-05", "2025-10-06", "2025-10-07", "2025-10-08", "2025-10-09", "2025-10-10", "2025-10-15", "2025-10-16", "2025-10-22", "2025-11-14", "2025-11-21", "2025-12-02", "2025-12-04", "2025-12-11", "2025-12-12", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-12", "2026-01-13", "2026-03-02", "2026-03-03", "2026-03-04", "2026-03-05", "2026-03-09", "2026-03-10", "2026-03-11", "2026-03-24", "2026-03-31", "2026-04-01"]},
+  {id:"R101",category:"Rampages",water_dist:271.7,water_moving_dist:248.2,water_hrs:92.4,last_water:"2026-03-10",water_dates:["2025-07-01", "2025-07-02", "2025-07-08", "2025-07-10", "2025-09-06", "2025-09-07", "2025-09-08", "2025-09-09", "2025-09-10", "2025-09-11", "2025-09-12", "2025-09-13", "2025-10-24", "2025-10-27", "2025-10-28", "2026-01-13", "2026-01-14", "2026-01-21", "2026-01-23", "2026-02-20", "2026-03-09", "2026-03-10"]},
+  {id:"R114",category:"Rampages",water_dist:268.8,water_moving_dist:217.3,water_hrs:504.8,last_water:"2026-04-10",water_dates:["2025-07-09", "2025-07-30", "2025-08-20", "2025-08-22", "2025-08-23", "2025-08-25", "2025-08-26", "2025-09-23", "2025-09-25", "2025-09-26", "2025-11-03", "2025-11-10", "2025-11-14", "2025-11-15", "2025-11-16", "2025-11-17", "2025-11-18", "2025-11-19", "2025-11-20", "2025-11-21", "2025-11-22", "2025-11-23", "2025-11-24", "2025-11-25", "2025-11-26", "2025-11-27", "2025-11-28", "2025-11-29", "2025-11-30", "2025-12-01", "2025-12-02", "2026-01-09", "2026-01-13", "2026-01-21", "2026-01-22", "2026-01-29", "2026-01-30", "2026-02-05", "2026-02-10", "2026-02-26", "2026-03-02", "2026-03-13", "2026-03-18", "2026-03-31", "2026-04-03", "2026-04-08", "2026-04-10"]},
+  {id:"R106",category:"Rampages",water_dist:266.8,water_moving_dist:242.5,water_hrs:93.2,last_water:"2026-04-01",water_dates:["2025-06-30", "2025-07-02", "2025-07-08", "2025-07-10", "2025-08-08", "2025-08-14", "2025-08-15", "2025-09-06", "2025-09-09", "2025-09-10", "2025-09-11", "2025-09-12", "2025-09-13", "2025-10-23", "2025-10-24", "2025-10-27", "2025-10-28", "2026-01-12", "2026-01-13", "2026-01-14", "2026-01-21", "2026-01-23", "2026-03-31", "2026-04-01"]},
+  {id:"R117",category:"Rampages",water_dist:264.6,water_moving_dist:229.6,water_hrs:131.3,last_water:"2026-04-02",water_dates:["2025-07-07", "2025-07-08", "2025-07-09", "2025-07-30", "2025-08-05", "2025-08-06", "2025-08-25", "2025-08-26", "2025-08-27", "2025-08-28", "2025-09-16", "2025-09-24", "2025-10-08", "2025-10-09", "2025-10-10", "2025-10-15", "2025-10-16", "2025-10-22", "2025-10-30", "2025-11-14", "2025-12-02", "2025-12-17", "2026-01-05", "2026-01-09", "2026-01-13", "2026-01-21", "2026-01-22", "2026-01-30", "2026-02-10", "2026-02-12", "2026-02-13", "2026-02-26", "2026-03-05", "2026-03-18", "2026-03-19", "2026-03-31", "2026-04-02"]},
+  {id:"R109",category:"Rampages",water_dist:251.2,water_moving_dist:224.2,water_hrs:127.0,last_water:"2026-04-08",water_dates:["2025-07-30", "2025-08-05", "2025-08-06", "2025-08-07", "2025-08-19", "2025-08-25", "2025-08-26", "2025-08-27", "2025-09-24", "2025-09-25", "2025-09-26", "2025-10-07", "2025-10-09", "2025-10-14", "2025-10-15", "2025-11-06", "2025-11-18", "2025-11-19", "2026-01-29", "2026-01-30", "2026-02-10", "2026-02-12", "2026-02-21", "2026-02-25", "2026-02-26", "2026-03-02", "2026-03-03", "2026-03-04", "2026-03-17", "2026-03-26", "2026-04-08"]},
+  {id:"R100",category:"Rampages",water_dist:248.6,water_moving_dist:198.1,water_hrs:136.6,last_water:"2026-04-10",water_dates:["2025-06-30", "2025-07-01", "2025-07-02", "2025-07-03", "2025-07-07", "2025-07-08", "2025-07-10", "2025-07-18", "2025-07-22", "2025-07-23", "2025-07-24", "2025-07-25", "2025-07-28", "2025-07-29", "2025-08-07", "2025-08-08", "2025-08-11", "2025-08-12", "2025-08-13", "2025-08-14", "2025-08-15", "2025-08-18", "2025-08-19", "2025-08-20", "2025-08-21", "2025-08-22", "2025-08-25", "2025-08-26", "2025-08-27", "2025-08-28", "2025-09-02", "2025-09-03", "2025-09-08", "2025-09-09", "2025-09-12", "2025-09-15", "2025-09-16", "2025-09-17", "2025-09-18", "2025-09-29", "2025-09-30", "2025-10-01", "2025-10-28", "2025-11-06", "2025-11-21", "2025-11-25", "2025-12-01", "2025-12-02", "2025-12-03", "2025-12-04", "2025-12-10", "2025-12-11", "2025-12-12", "2025-12-15", "2025-12-16", "2025-12-17", "2026-01-07", "2026-01-08", "2026-01-09", "2026-01-12", "2026-01-14", "2026-02-06", "2026-02-09", "2026-04-10"]},
+  {id:"R118",category:"Rampages",water_dist:247.9,water_moving_dist:199.2,water_hrs:206.5,last_water:"2025-12-11",water_dates:["2025-07-07", "2025-07-29", "2025-07-31", "2025-08-06", "2025-08-07", "2025-08-25", "2025-08-26", "2025-08-27", "2025-08-28", "2025-09-12", "2025-09-15", "2025-09-17", "2025-09-18", "2025-09-19", "2025-09-20", "2025-09-21", "2025-09-22", "2025-09-23", "2025-09-24", "2025-09-30", "2025-10-01", "2025-10-02", "2025-10-03", "2025-10-04", "2025-10-05", "2025-10-06", "2025-10-07", "2025-10-08", "2025-10-09", "2025-10-10", "2025-10-20", "2025-10-21", "2025-10-22", "2025-10-23", "2025-10-24", "2025-10-29", "2025-11-04", "2025-11-05", "2025-11-06", "2025-11-07", "2025-11-13", "2025-11-18", "2025-12-10", "2025-12-11"]},
+  {id:"R110",category:"Rampages",water_dist:238.5,water_moving_dist:209.0,water_hrs:126.4,last_water:"2026-04-01",water_dates:["2025-07-01", "2025-07-02", "2025-07-03", "2025-07-08", "2025-07-10", "2025-08-04", "2025-08-05", "2025-08-11", "2025-08-12", "2025-08-13", "2025-09-06", "2025-09-07", "2025-09-09", "2025-09-11", "2025-09-12", "2025-09-13", "2025-10-24", "2025-10-27", "2025-10-28", "2025-11-05", "2026-01-13", "2026-01-14", "2026-03-09", "2026-03-10", "2026-04-01"]},
+  {id:"R115",category:"Rampages",water_dist:230.8,water_moving_dist:200.5,water_hrs:109.4,last_water:"2026-04-08",water_dates:["2025-08-12", "2025-08-13", "2025-08-14", "2025-08-15", "2025-08-19", "2025-08-20", "2025-08-21", "2025-08-22", "2025-08-25", "2025-08-26", "2025-08-27", "2025-08-28", "2025-09-02", "2025-09-03", "2025-09-04", "2025-09-05", "2025-09-06", "2025-09-07", "2025-09-08", "2025-09-09", "2025-09-24", "2025-09-25", "2025-09-26", "2025-10-07", "2025-10-09", "2025-10-14", "2025-10-15", "2025-11-18", "2025-11-19", "2026-01-29", "2026-02-10", "2026-02-12", "2026-02-20", "2026-03-26", "2026-04-08"]},
+  {id:"R119",category:"Rampages",water_dist:227.4,water_moving_dist:198.3,water_hrs:116.7,last_water:"2025-12-12",water_dates:["2025-07-31", "2025-08-04", "2025-08-05", "2025-08-07", "2025-08-19", "2025-08-20", "2025-08-21", "2025-08-22", "2025-08-25", "2025-08-26", "2025-08-27", "2025-08-28", "2025-09-10", "2025-09-12", "2025-09-15", "2025-09-16", "2025-09-17", "2025-09-18", "2025-09-19", "2025-09-29", "2025-09-30", "2025-10-01", "2025-10-02", "2025-10-03", "2025-10-06", "2025-10-07", "2025-10-08", "2025-10-09", "2025-10-10", "2025-10-14", "2025-10-15", "2025-10-17", "2025-10-22", "2025-10-30", "2025-11-14", "2025-11-21", "2025-12-02", "2025-12-11", "2025-12-12"]},
+  {id:"R103",category:"Rampages",water_dist:218.1,water_moving_dist:201.7,water_hrs:73.3,last_water:"2026-03-26",water_dates:["2025-07-08", "2025-07-10", "2025-09-09", "2025-09-11", "2025-09-23", "2025-09-24", "2025-09-25", "2025-09-26", "2025-10-09", "2025-11-06", "2025-11-19", "2026-01-30", "2026-02-12", "2026-02-21", "2026-03-05", "2026-03-17", "2026-03-25", "2026-03-26"]},
+  {id:"R104",category:"Rampages",water_dist:206.2,water_moving_dist:186.1,water_hrs:105.3,last_water:"2026-03-26",water_dates:["2025-07-08", "2025-07-10", "2025-08-21", "2025-08-25", "2025-08-26", "2025-08-28", "2025-09-22", "2025-10-07", "2025-10-09", "2025-11-06", "2025-11-18", "2025-11-19", "2026-01-30", "2026-02-10", "2026-02-12", "2026-02-21", "2026-02-25", "2026-02-26", "2026-03-02", "2026-03-03", "2026-03-04", "2026-03-17", "2026-03-26"]},
+  {id:"R15",category:"Rampages",water_dist:197.3,water_moving_dist:174.7,water_hrs:64.1,last_water:"2026-01-14",water_dates:["2025-09-06", "2025-09-07", "2025-09-08", "2025-09-09", "2025-09-10", "2025-09-11", "2025-09-12", "2025-09-13", "2025-10-07", "2025-10-16", "2025-10-23", "2025-10-24", "2025-10-27", "2025-10-28", "2026-01-09", "2026-01-13", "2026-01-14"]},
+  {id:"R113",category:"Rampages",water_dist:194.2,water_moving_dist:143.4,water_hrs:114.2,last_water:"2026-03-19",water_dates:["2025-07-09", "2025-08-05", "2025-08-06", "2025-08-07", "2025-08-22", "2025-08-25", "2025-08-26", "2025-08-27", "2025-09-17", "2025-09-18", "2025-10-02", "2025-10-03", "2025-10-07", "2025-10-10", "2025-10-22", "2025-10-23", "2025-10-29", "2025-11-04", "2025-11-05", "2025-11-18", "2025-11-19", "2025-11-20", "2025-11-21", "2025-11-24", "2025-12-01", "2025-12-02", "2025-12-03", "2025-12-09", "2025-12-10", "2025-12-11", "2026-01-08", "2026-01-13", "2026-01-14", "2026-01-15", "2026-01-22", "2026-01-23", "2026-02-10", "2026-03-03", "2026-03-06", "2026-03-13", "2026-03-19"]},
+  {id:"R102",category:"Rampages",water_dist:187.4,water_moving_dist:171.4,water_hrs:60.9,last_water:"2026-03-10",water_dates:["2025-07-08", "2025-08-05", "2025-08-12", "2025-08-14", "2025-09-06", "2025-09-07", "2025-09-11", "2025-09-12", "2025-10-24", "2025-10-26", "2025-10-27", "2025-10-28", "2025-11-05", "2025-12-17", "2025-12-18", "2025-12-19", "2026-01-08", "2026-01-13", "2026-01-14", "2026-01-21", "2026-01-23", "2026-03-09", "2026-03-10"]},
+  {id:"R120",category:"Rampages",water_dist:174.0,water_moving_dist:153.2,water_hrs:77.6,last_water:"2026-03-31",water_dates:["2025-08-05", "2025-08-06", "2025-08-08", "2025-09-06", "2025-09-07", "2025-09-08", "2025-09-10", "2025-09-11", "2025-09-12", "2025-09-13", "2025-10-24", "2025-10-27", "2025-10-28", "2025-11-05", "2026-01-23", "2026-03-09", "2026-03-10", "2026-03-11", "2026-03-31"]},
+  {id:"R123",category:"Rampages",water_dist:169.6,water_moving_dist:149.8,water_hrs:77.4,last_water:"2026-03-26",water_dates:["2025-09-08", "2025-09-09", "2025-09-22", "2025-09-24", "2025-09-25", "2025-09-26", "2025-10-07", "2025-10-09", "2025-10-14", "2025-10-15", "2025-11-18", "2025-11-19", "2026-01-30", "2026-02-10", "2026-02-12", "2026-02-21", "2026-03-26"]},
+  {id:"SEAHOUND_1",category:"Sims",water_dist:157.7,water_moving_dist:155.4,water_hrs:43.8,last_water:"2026-01-20",water_dates:["2025-08-01", "2025-08-04", "2025-08-05", "2025-08-14", "2025-08-18", "2025-08-19", "2025-08-20", "2025-11-06", "2025-11-10", "2025-12-10", "2025-12-15", "2025-12-19", "2026-01-20"]},
+  {id:"R111",category:"Rampages",water_dist:152.4,water_moving_dist:137.5,water_hrs:63.9,last_water:"2025-10-15",water_dates:["2025-07-03", "2025-07-07", "2025-07-31", "2025-08-07", "2025-08-19", "2025-08-20", "2025-08-25", "2025-08-26", "2025-08-27", "2025-09-09", "2025-09-10", "2025-09-23", "2025-09-24", "2025-09-25", "2025-09-26", "2025-10-07", "2025-10-09", "2025-10-14", "2025-10-15"]},
+  {id:"R116",category:"Rampages",water_dist:147.3,water_moving_dist:119.9,water_hrs:67.3,last_water:"2026-04-10",water_dates:["2025-07-30", "2025-08-19", "2025-08-20", "2025-08-22", "2025-08-25", "2025-08-26", "2025-09-24", "2025-09-25", "2025-09-26", "2025-12-08", "2025-12-09", "2025-12-10", "2025-12-12", "2025-12-15", "2025-12-16", "2025-12-17", "2025-12-18", "2025-12-22", "2026-01-05", "2026-01-08", "2026-01-12", "2026-01-13", "2026-01-15", "2026-01-16", "2026-01-21", "2026-01-22", "2026-01-28", "2026-02-05", "2026-03-16", "2026-03-31", "2026-04-09", "2026-04-10"]},
+  {id:"R34",category:"Rampages",water_dist:134.7,water_moving_dist:123.3,water_hrs:46.8,last_water:"2025-11-13",water_dates:["2025-06-24", "2025-07-08", "2025-07-10", "2025-09-03", "2025-09-07", "2025-09-09", "2025-09-10", "2025-09-11", "2025-09-12", "2025-09-13", "2025-10-24", "2025-10-27", "2025-10-28", "2025-11-05", "2025-11-13"]},
+  {id:"R107",category:"Rampages",water_dist:124.0,water_moving_dist:114.3,water_hrs:44.8,last_water:"2025-09-13",water_dates:["2025-07-01", "2025-07-02", "2025-07-03", "2025-09-07", "2025-09-08", "2025-09-09", "2025-09-10", "2025-09-11", "2025-09-12", "2025-09-13"]},
+  {id:"TIDEMAN-1",category:"Other",water_dist:110.8,water_moving_dist:97.2,water_hrs:52.8,last_water:"2026-04-10",water_dates:["2026-02-02", "2026-02-03", "2026-02-04", "2026-02-10", "2026-02-12", "2026-02-20", "2026-02-26", "2026-03-02", "2026-03-05", "2026-03-13", "2026-03-18", "2026-03-19", "2026-03-27", "2026-04-03", "2026-04-08", "2026-04-10"]},
+  {id:"R30",category:"Rampages",water_dist:101.0,water_moving_dist:80.7,water_hrs:63.4,last_water:"2026-04-08",water_dates:["2025-07-10", "2025-10-09", "2025-10-14", "2025-10-15", "2025-11-18", "2025-11-19", "2026-01-29", "2026-01-30", "2026-02-12", "2026-02-21", "2026-02-25", "2026-02-26", "2026-03-02", "2026-03-03", "2026-03-04", "2026-03-17", "2026-03-26", "2026-04-08"]},
+  {id:"R125",category:"Rampages",water_dist:100.6,water_moving_dist:74.6,water_hrs:59.1,last_water:"2025-12-11",water_dates:["2025-10-06", "2025-10-09", "2025-10-14", "2025-10-15", "2025-10-16", "2025-10-17", "2025-10-21", "2025-10-23", "2025-10-28", "2025-10-31", "2025-11-04", "2025-11-05", "2025-11-06", "2025-11-10", "2025-11-12", "2025-11-13", "2025-11-24", "2025-11-25", "2025-12-01", "2025-12-02", "2025-12-03", "2025-12-04", "2025-12-09", "2025-12-10", "2025-12-11"]},
+  {id:"R129",category:"Rampages",water_dist:99.7,water_moving_dist:71.1,water_hrs:36.5,last_water:"2025-12-11",water_dates:["2025-10-23", "2025-10-24", "2025-10-25", "2025-10-26", "2025-10-27", "2025-10-30", "2025-11-10", "2025-11-19", "2025-11-21", "2025-11-22", "2025-11-23", "2025-11-24", "2025-12-02", "2025-12-03", "2025-12-09", "2025-12-10", "2025-12-11"]},
+  {id:"R35",category:"Rampages",water_dist:78.1,water_moving_dist:65.9,water_hrs:30.5,last_water:"2026-01-21",water_dates:["2025-08-28", "2025-09-02", "2025-09-03", "2025-09-08", "2025-09-09", "2026-01-09", "2026-01-13", "2026-01-14", "2026-01-21"]},
+  {id:"R25",category:"Rampages",water_dist:70.3,water_moving_dist:60.4,water_hrs:31.1,last_water:"2026-03-26",water_dates:["2025-10-09", "2025-10-14", "2025-10-15", "2025-11-18", "2025-11-19", "2026-02-12", "2026-03-26"]},
+  {id:"R128",category:"Rampages",water_dist:65.9,water_moving_dist:46.2,water_hrs:33.5,last_water:"2025-12-11",water_dates:["2025-10-24", "2025-10-25", "2025-10-26", "2025-10-27", "2025-10-28", "2025-10-29", "2025-12-09", "2025-12-10", "2025-12-11"]},
+  {id:"R135",category:"Rampages",water_dist:63.8,water_moving_dist:50.9,water_hrs:27.5,last_water:"2026-03-31",water_dates:["2026-01-06", "2026-01-08", "2026-01-12", "2026-01-14", "2026-01-20", "2026-01-21", "2026-01-22", "2026-03-04", "2026-03-13", "2026-03-26", "2026-03-30", "2026-03-31"]},
+  {id:"R130",category:"Rampages",water_dist:59.7,water_moving_dist:47.2,water_hrs:21.6,last_water:"2025-12-11",water_dates:["2025-10-24", "2025-10-25", "2025-10-26", "2025-10-27", "2025-10-28", "2025-12-09", "2025-12-10", "2025-12-11"]},
+  {id:"R138",category:"Rampages",water_dist:58.9,water_moving_dist:45.7,water_hrs:34.9,last_water:"2026-04-01",water_dates:["2026-01-27", "2026-01-28", "2026-02-19", "2026-02-20", "2026-03-02", "2026-03-03", "2026-03-04", "2026-03-06", "2026-03-10", "2026-03-11", "2026-03-13", "2026-03-23", "2026-03-24", "2026-03-25", "2026-03-26", "2026-03-31", "2026-04-01"]},
+  {id:"ATLAS",category:"Other",water_dist:56.0,water_moving_dist:51.9,water_hrs:21.3,last_water:"2026-03-09",water_dates:["2026-01-21", "2026-01-22", "2026-01-23", "2026-01-24", "2026-02-20", "2026-03-09"]},
+  {id:"MCRIB",category:"Other",water_dist:55.0,water_moving_dist:50.0,water_hrs:22.3,last_water:"2026-03-27",water_dates:["2025-12-04", "2025-12-11", "2025-12-18", "2026-01-22", "2026-02-02", "2026-02-04", "2026-03-13", "2026-03-19", "2026-03-27"]},
+  {id:"R136",category:"Rampages",water_dist:54.1,water_moving_dist:43.5,water_hrs:26.3,last_water:"2026-03-26",water_dates:["2026-01-06", "2026-01-07", "2026-01-08", "2026-01-12", "2026-01-14", "2026-03-04", "2026-03-05", "2026-03-23", "2026-03-24", "2026-03-26"]},
+  {id:"R134",category:"Rampages",water_dist:53.9,water_moving_dist:43.4,water_hrs:26.7,last_water:"2026-04-08",water_dates:["2026-01-06", "2026-01-07", "2026-01-08", "2026-01-12", "2026-02-26", "2026-03-02", "2026-03-06", "2026-03-11", "2026-03-31", "2026-04-01", "2026-04-02", "2026-04-03", "2026-04-08"]},
+  {id:"R4",category:"Rampages",water_dist:50.0,water_moving_dist:49.0,water_hrs:10.9,last_water:"2025-09-18",water_dates:["2025-09-05", "2025-09-10", "2025-09-18"]},
+  {id:"R14",category:"Rampages",water_dist:47.8,water_moving_dist:44.4,water_hrs:16.2,last_water:"2025-09-07",water_dates:["2025-08-28", "2025-09-05", "2025-09-06", "2025-09-07"]},
+  {id:"R126",category:"Rampages",water_dist:43.9,water_moving_dist:36.4,water_hrs:19.7,last_water:"2025-12-11",water_dates:["2025-10-20", "2025-10-21", "2025-10-22", "2025-10-23", "2025-10-24", "2025-12-10", "2025-12-11"]},
+  {id:"SB-36",category:"Other",water_dist:42.3,water_moving_dist:39.7,water_hrs:9.7,last_water:"2026-02-20",water_dates:["2026-01-21", "2026-01-23", "2026-02-20"]},
+  {id:"R139",category:"Rampages",water_dist:38.4,water_moving_dist:32.1,water_hrs:17.1,last_water:"2026-04-03",water_dates:["2026-02-06", "2026-02-27", "2026-03-02", "2026-03-03", "2026-03-09", "2026-03-10", "2026-03-13", "2026-04-02", "2026-04-03"]},
+  {id:"R127",category:"Rampages",water_dist:32.2,water_moving_dist:29.6,water_hrs:73.3,last_water:"2025-12-11",water_dates:["2025-10-24", "2025-10-25", "2025-10-26", "2025-10-27", "2025-12-09", "2025-12-11"]},
+  {id:"R137",category:"Rampages",water_dist:32.1,water_moving_dist:25.7,water_hrs:18.5,last_water:"2026-04-02",water_dates:["2026-01-27", "2026-02-19", "2026-02-20", "2026-03-03", "2026-03-04", "2026-03-06", "2026-03-10", "2026-03-11", "2026-03-13", "2026-04-02"]},
+  {id:"R37",category:"Rampages",water_dist:28.3,water_moving_dist:23.4,water_hrs:16.4,last_water:"2025-07-10",water_dates:["2025-06-24", "2025-07-08", "2025-07-10"]},
+  {id:"R39",category:"Rampages",water_dist:27.3,water_moving_dist:22.9,water_hrs:13.4,last_water:"2025-07-10",water_dates:["2025-06-24", "2025-07-08", "2025-07-10"]},
+  {id:"FRIENDLY",category:"Other",water_dist:26.2,water_moving_dist:22.9,water_hrs:7.4,last_water:"2026-03-10",water_dates:["2026-03-09", "2026-03-10"]},
+  {id:"R140",category:"Rampages",water_dist:17.8,water_moving_dist:14.9,water_hrs:8.6,last_water:"2026-03-13",water_dates:["2026-03-05", "2026-03-06", "2026-03-09", "2026-03-10", "2026-03-13"]},
+  {id:"R42",category:"Rampages",water_dist:17.7,water_moving_dist:16.1,water_hrs:6.4,last_water:"2025-06-27",water_dates:["2025-06-24", "2025-06-25", "2025-06-26", "2025-06-27"]},
+  {id:"R201",category:"Rampages",water_dist:17.4,water_moving_dist:14.0,water_hrs:6.8,last_water:"2026-04-10",water_dates:["2026-03-24", "2026-03-27", "2026-04-10"]},
+  {id:"R36",category:"Rampages",water_dist:14.6,water_moving_dist:12.6,water_hrs:7.5,last_water:"2025-07-31",water_dates:["2025-07-08", "2025-07-10", "2025-07-31"]},
+  {id:"R38",category:"Rampages",water_dist:14.1,water_moving_dist:10.4,water_hrs:47.4,last_water:"2025-09-09",water_dates:["2025-07-08", "2025-07-11", "2025-07-12", "2025-07-13", "2025-09-05", "2025-09-08", "2025-09-09"]},
+  {id:"HOSTILE",category:"Other",water_dist:13.7,water_moving_dist:10.6,water_hrs:5.1,last_water:"2026-03-10",water_dates:["2026-03-10"]},
+  {id:"R11",category:"Rampages",water_dist:12.8,water_moving_dist:11.3,water_hrs:7.9,last_water:"2025-09-26",water_dates:["2025-09-23", "2025-09-25", "2025-09-26"]},
+  {id:"PLASTIC-1",category:"Rampages",water_dist:12.8,water_moving_dist:11.4,water_hrs:6.5,last_water:"2026-03-20",water_dates:["2026-02-06", "2026-02-11", "2026-02-17", "2026-03-20"]},
+  {id:"R142",category:"Rampages",water_dist:11.8,water_moving_dist:7.7,water_hrs:4.7,last_water:"2026-04-07",water_dates:["2026-03-16", "2026-03-17", "2026-04-01", "2026-04-02", "2026-04-07"]},
+  {id:"JESSE-1",category:"Other",water_dist:9.6,water_moving_dist:7.9,water_hrs:6.8,last_water:"2026-03-13",water_dates:["2026-03-12", "2026-03-13"]},
+  {id:"R145",category:"Rampages",water_dist:6.9,water_moving_dist:5.4,water_hrs:2.4,last_water:"2026-04-10",water_dates:["2026-04-08", "2026-04-09", "2026-04-10"]},
+  {id:"TEST",category:"Sims",water_dist:6.7,water_moving_dist:4.2,water_hrs:6.2,last_water:"2025-09-10",water_dates:["2025-09-09", "2025-09-10"]},
+  {id:"R252",category:"Rampages",water_dist:6.5,water_moving_dist:5.9,water_hrs:2.1,last_water:"2025-09-09",water_dates:["2025-09-03", "2025-09-07", "2025-09-09"]},
+  {id:"R141",category:"Rampages",water_dist:5.5,water_moving_dist:4.2,water_hrs:2.5,last_water:"2026-03-17",water_dates:["2026-03-04", "2026-03-05", "2026-03-09", "2026-03-17"]},
+  {id:"R143",category:"Rampages",water_dist:4.7,water_moving_dist:4.0,water_hrs:1.3,last_water:"2026-04-09",water_dates:["2026-04-09"]},
+  {id:"R147",category:"Rampages",water_dist:4.6,water_moving_dist:3.9,water_hrs:1.4,last_water:"2026-04-10",water_dates:["2026-04-10"]},
+  {id:"R41",category:"Rampages",water_dist:4.2,water_moving_dist:2.3,water_hrs:2.6,last_water:"2025-06-26",water_dates:["2025-06-24", "2025-06-25", "2025-06-26"]},
+  {id:"R131",category:"Rampages",water_dist:3.6,water_moving_dist:3.2,water_hrs:1.7,last_water:"2025-12-18",water_dates:["2025-12-18"]},
+  {id:"R133",category:"Rampages",water_dist:3.4,water_moving_dist:3.0,water_hrs:1.3,last_water:"2025-12-18",water_dates:["2025-12-18"]},
+  {id:"R132",category:"Rampages",water_dist:2.1,water_moving_dist:1.8,water_hrs:0.9,last_water:"2025-12-18",water_dates:["2025-12-18"]},
+  {id:"R144",category:"Rampages",water_dist:1.1,water_moving_dist:0.3,water_hrs:0.6,last_water:"2026-04-10",water_dates:["2026-04-08", "2026-04-09", "2026-04-10"]},
+  {id:"FULL-RAMPAGE-HIL-1",category:"Sims",water_dist:0.9,water_moving_dist:0.2,water_hrs:0.2,last_water:"2025-10-07",water_dates:["2025-10-07"]},
+  {id:"R146",category:"Rampages",water_dist:0.2,water_moving_dist:0.2,water_hrs:0.0,last_water:"2026-04-08",water_dates:["2026-04-08"]},
+  {id:"SIM-LOCAL",category:"Sims",water_dist:0.1,water_moving_dist:0.0,water_hrs:4.3,last_water:"2025-10-17",water_dates:["2025-10-15", "2025-10-17"]},
+  {id:"R40",category:"Rampages",water_dist:0.0,water_moving_dist:0.0,water_hrs:0.0,last_water:"2025-08-15",water_dates:["2025-08-05", "2025-08-14", "2025-08-15"]},
+  {id:"SEAHOUND-1",category:"Sims",water_dist:0.0,water_moving_dist:0.0,water_hrs:0.0,last_water:"2026-03-12",water_dates:["2026-03-12"]},
+  {id:"R12",category:"Rampages",water_dist:0.0,water_moving_dist:0.0,water_hrs:0.0,last_water:null,water_dates:[]},
+  {id:"R13",category:"Rampages",water_dist:0.0,water_moving_dist:0.0,water_hrs:0.0,last_water:null,water_dates:[]},
+  {id:"R18",category:"Rampages",water_dist:0.0,water_moving_dist:0.0,water_hrs:0.0,last_water:null,water_dates:[]},
+  {id:"R19",category:"Rampages",water_dist:0.0,water_moving_dist:0.0,water_hrs:0.0,last_water:null,water_dates:[]},
+  {id:"R20",category:"Rampages",water_dist:0.0,water_moving_dist:0.0,water_hrs:0.0,last_water:null,water_dates:[]},
+  {id:"R21",category:"Rampages",water_dist:0.0,water_moving_dist:0.0,water_hrs:0.0,last_water:null,water_dates:[]},
+  {id:"R22",category:"Rampages",water_dist:0.0,water_moving_dist:0.0,water_hrs:0.0,last_water:null,water_dates:[]},
+  {id:"R23",category:"Rampages",water_dist:0.0,water_moving_dist:0.0,water_hrs:0.0,last_water:null,water_dates:[]},
+  {id:"R24",category:"Rampages",water_dist:0.0,water_moving_dist:0.0,water_hrs:0.0,last_water:null,water_dates:[]},
+  {id:"R26",category:"Rampages",water_dist:0.0,water_moving_dist:0.0,water_hrs:0.0,last_water:null,water_dates:[]},
+  {id:"R27",category:"Rampages",water_dist:0.0,water_moving_dist:0.0,water_hrs:0.0,last_water:null,water_dates:[]},
+  {id:"R28",category:"Rampages",water_dist:0.0,water_moving_dist:0.0,water_hrs:0.0,last_water:null,water_dates:[]},
+  {id:"R29",category:"Rampages",water_dist:0.0,water_moving_dist:0.0,water_hrs:0.0,last_water:null,water_dates:[]},
+  {id:"R32",category:"Rampages",water_dist:0.0,water_moving_dist:0.0,water_hrs:0.0,last_water:null,water_dates:[]}
 ];
 
 var CATEGORIES=[
@@ -592,9 +594,11 @@ var kpis=[
   {label:'Most Recent On Water',value:'2026-04-10',sub:'Boat #TIDEMAN-1',color:C.TEAL},
   {label:'Active Vessels',value:'78',sub:'Boats tracked',color:C.BLUE},
   {label:'Total Water Dist',value:totalWaterNM.toLocaleString(undefined,{maximumFractionDigits:1})+' NM',sub:'Nautical miles on water',color:C.AMBER},
-  {label:'Under Propulsion',value:totalMovingNM.toLocaleString(undefined,{maximumFractionDigits:1})+' NM',sub:'Drifting: '+(totalWaterNM-totalMovingNM).toLocaleString(undefined,{maximumFractionDigits:1})+' NM',color:C.PINK},
-  {label:'Drifting Time',value:Math.round(totalWaterHrs-totalMovingHrs).toLocaleString(),sub:'Hours on water, not under propulsion',color:C.SKY},
-  {label:'Total Water Time',value:Math.round(totalWaterHrs).toLocaleString(),sub:'Hours on water',color:C.PURPLE}
+  {label:'Under Propulsion Distance',value:totalMovingNM.toLocaleString(undefined,{maximumFractionDigits:1})+' NM',sub:'Nautical miles actively moving',color:C.PINK},
+  {label:'Drifting Distance',value:(totalWaterNM-totalMovingNM).toLocaleString(undefined,{maximumFractionDigits:1})+' NM',sub:'Nautical miles drifting',color:C.ORANGE},
+  {label:'Total Water Time',value:Math.round(totalWaterHrs).toLocaleString(),sub:'Hours on water',color:C.PURPLE},
+  {label:'Under Propulsion Time',value:Math.round(totalMovingHrs).toLocaleString(),sub:'Hours actively moving',color:C.GREEN},
+  {label:'Drifting Time',value:Math.round(totalWaterHrs-totalMovingHrs).toLocaleString(),sub:'Hours on water, not under propulsion',color:C.SKY}
 ];
 document.getElementById('kpi-row').innerHTML=kpis.map(function(k){
   return '<div class="kpi-card"><div class="kpi-accent" style="background:'+k.color+'"></div><div class="kpi-label">'+k.label+'</div><div class="kpi-value">'+k.value+'</div><div class="kpi-sub">'+k.sub+'</div></div>';
@@ -617,7 +621,7 @@ new Chart(document.getElementById('monthlyChart'),{
 
 
 // Per-boat velocity heat table
-var BOAT_VEL_BINS=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
+var BOAT_VEL_BINS=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
 var BOAT_VEL_DATA={"R108":[12.0,28.0,19.7,31.5,46.2,53.6,167.9,42.1,27.2,15.9,20.6,6.6,8.3,6.4,11.2,6.6,4.3,1.0,0.5,0.2,0.1],"R122":[29.7,28.5,15.1,116.3,38.2,30.3,17.7,10.3,7.7,8.8,46.2,13.5,4.7,2.5,5.9,6.2,4.7,0.6,0.4,0.1,0.1],"R112":[15.5,27.0,19.8,34.2,57.8,56.0,31.2,15.7,15.0,10.5,19.3,3.8,5.6,13.6,13.6,5.6,2.7,1.0,0.4,0.1,0.1],"R105":[10.7,23.4,20.1,21.7,32.5,35.1,34.5,16.2,30.5,14.2,19.2,8.4,10.0,9.9,11.2,10.6,4.4,0.7,0.6,0.1,0.0],"R124":[9.6,23.8,16.5,34.3,33.8,36.1,36.8,15.4,18.0,11.5,13.9,9.6,9.5,6.7,7.2,4.4,2.2,0.9,0.7,0.5,0.6],"R121":[12.5,23.3,19.2,45.1,33.5,25.5,22.2,8.1,12.4,9.5,39.7,14.7,5.1,3.3,4.5,3.0,1.9,0.5,0.4,0.3,0.5],"R101":[6.2,12.8,14.5,17.5,19.2,17.2,29.0,29.7,43.2,22.5,36.7,9.5,7.7,2.7,1.3,1.0,0.4,0.0,0.0,0.0,0.1],"R114":[24.1,21.3,13.2,28.0,37.2,46.7,22.8,14.8,20.6,7.9,15.9,2.2,2.5,2.4,3.4,2.0,1.2,0.9,1.1,0.1,0.1],"R106":[6.2,14.2,13.2,19.8,22.0,17.6,30.5,30.5,38.8,20.6,24.5,8.0,11.4,4.8,2.0,1.3,0.9,0.2,0.2,0.0,0.0],"R117":[10.7,18.5,15.8,27.0,41.9,39.1,25.1,14.1,13.0,8.3,16.6,4.1,7.6,7.7,8.7,2.9,1.7,0.6,0.3,0.4,0.1],"R109":[11.2,14.2,11.1,27.8,34.8,44.9,37.1,24.7,17.5,8.3,7.2,2.2,4.2,1.1,1.9,1.1,1.1,0.7,0.2,0.1,0.0],"R118":[12.6,17.4,18.0,26.7,36.6,32.8,16.2,14.5,11.0,8.1,20.0,5.6,7.4,5.7,5.4,3.8,2.6,0.9,0.6,0.3,0.2],"R100":[8.5,18.4,14.5,17.8,29.0,21.8,24.5,10.5,15.2,10.7,13.8,8.2,11.8,8.7,9.3,9.5,3.6,1.5,1.8,1.6,1.9],"R110":[7.4,15.8,18.2,15.1,14.9,13.6,27.7,24.1,37.7,20.7,27.9,6.2,4.6,1.8,1.5,0.9,0.3,0.1,0.1,0.0,0.0],"R115":[9.7,14.8,12.3,19.0,35.6,38.4,33.1,15.0,15.4,7.4,8.7,3.0,7.6,2.1,3.2,1.6,1.3,0.2,0.3,0.3,0.3],"R119":[9.7,12.2,11.5,18.5,33.1,24.8,18.2,7.0,6.5,8.4,48.9,11.9,4.2,4.4,3.8,1.8,1.6,0.3,0.1,0.1,0.1],"R103":[5.2,8.5,7.5,11.6,20.9,40.2,61.1,17.2,12.0,7.3,13.3,2.7,4.0,2.0,2.5,1.3,0.5,0.1,0.0,0.1,0.0],"R104":[9.0,9.9,8.2,32.9,25.1,31.0,27.5,17.2,10.5,8.6,13.0,2.4,1.9,2.2,2.9,1.5,0.5,0.8,0.9,0.0,0.0],"R15":[2.9,16.1,17.9,9.8,12.6,16.6,18.1,21.3,29.6,17.0,10.6,3.7,3.2,2.1,3.4,2.4,2.3,1.2,1.2,1.0,1.2],"R113":[11.8,13.8,28.0,12.5,24.1,14.9,23.3,10.3,9.4,6.6,7.6,3.7,7.9,4.4,6.4,2.9,2.4,1.6,1.5,0.2,0.3],"R102":[3.4,9.4,7.9,10.0,17.2,13.5,23.7,20.5,30.0,17.7,19.1,6.9,5.8,0.9,0.3,0.1,0.1,0.1,0.1,0.1,0.1],"R120":[5.9,9.4,12.4,9.5,10.8,13.4,22.3,15.2,24.8,16.3,14.9,4.0,6.9,3.7,2.3,1.8,0.1,0.2,0,0,0],"R123":[6.3,12.0,8.2,11.5,21.9,33.2,27.9,17.3,14.2,7.2,2.4,1.4,1.2,1.3,1.4,1.6,0.5,0.1,0.0,0.0,0.0],"SEAHOUND_1":[1.2,1.6,3.3,4.3,5.7,4.2,4.0,4.9,7.1,7.0,9.4,6.2,12.8,8.4,9.7,31.4,8.2,3.5,2.5,6.1,12.0],"R111":[5.2,8.2,7.0,12.5,25.3,29.8,16.5,9.4,11.0,5.6,9.8,1.9,2.8,1.9,1.5,1.1,2.1,0.5,0.2,0.0,0.0],"R116":[5.7,10.1,8.1,7.8,13.4,24.3,12.5,6.8,13.0,13.2,14.4,3.1,2.9,2.7,2.9,1.9,1.9,0.5,0.4,0.3,0.2],"R34":[2.1,7.2,10.1,5.7,10.0,14.7,18.7,15.8,19.8,13.0,5.5,2.2,2.2,1.3,1.7,1.8,1.6,0.3,0.4,0.2,0.1],"R107":[3.2,4.0,3.9,5.1,7.0,7.4,11.9,15.7,15.3,12.8,19.5,4.3,5.1,1.5,1.3,0.7,0.8,0.6,0.6,0.4,0.6],"TIDEMAN-1":[4.1,8.5,6.5,7.9,14.8,14.9,13.4,7.7,3.8,0.9,4.1,0.9,0.7,0.6,0.8,0.7,0.9,0.8,1.4,1.7,7.5],"R30":[5.3,13.8,10.7,9.4,13.6,14.7,16.0,9.4,4.2,0.6,0.9,0.9,0.7,0.1,0.0,0.0,0.0,0.0,0.0,0.0,0.1],"R125":[4.7,10.4,9.9,6.6,13.4,18.5,7.7,5.2,5.7,4.8,2.9,1.7,2.0,1.8,1.5,1.2,0.8,0.3,0.3,0.2,0.2],"R129":[2.2,8.0,8.7,7.0,8.1,12.9,9.3,3.9,4.3,2.9,5.9,2.5,2.8,2.1,2.5,2.2,2.1,1.5,1.6,1.4,1.5],"R35":[1.0,9.6,11.8,7.9,8.7,5.0,6.8,8.1,6.2,3.3,3.3,1.0,1.5,0.5,0.7,0.6,0.5,0.2,0.2,0.1,0.2],"R25":[1.2,8.1,5.6,5.1,7.9,9.3,7.5,8.4,7.5,2.2,2.3,1.1,0.7,0.4,0.3,0.4,0.4,0.5,0.5,0.2,0.3],"R128":[5.8,7.8,6.4,4.5,4.9,5.2,5.2,1.9,2.1,3.3,2.7,2.7,9.7,1.1,1.1,1.1,0.3,0.0,0.0,0.0,0.0],"R135":[1.6,6.0,3.7,25.2,3.3,4.2,3.0,2.1,3.0,1.7,2.5,0.8,1.4,0.8,1.9,1.3,0.3,0.2,0.1,0.1,0.1],"R130":[1.4,6.0,4.8,4.3,4.0,5.2,5.5,2.2,2.4,1.7,2.7,3.1,9.7,1.9,1.9,1.5,1.2,0.0,0.0,0.0,0.0],"R138":[3.9,8.2,4.0,6.2,5.8,8.6,5.7,1.8,1.8,1.3,2.2,1.4,2.0,1.6,2.3,1.5,0.6,0.1,0.0,0.0,0.0],"R136":[1.6,6.3,2.1,26.9,4.8,2.9,0.9,0.5,1.2,0.4,0.9,0.6,1.2,0.7,0.6,1.8,0.4,0.1,0.1,0.0,0.0],"R134":[2.0,5.7,2.7,23.0,2.1,7.0,1.8,0.8,0.5,0.6,3.7,0.5,0.4,0.8,0.3,1.4,0.1,0.0,0.0,0.0,0.0],"ATLAS":[1.2,2.3,1.9,1.0,1.6,1.7,3.6,2.9,7.3,5.9,5.2,3.5,5.2,2.3,1.6,1.2,1.1,0.7,0.9,1.5,0.6],"R4":[0.4,0.5,1.2,1.4,5.2,12.1,4.3,5.2,6.1,6.7,6.3,0.6,0.0,0,0,0,0,0,0,0,0],"MCRIB":[1.0,3.5,4.9,3.3,4.4,5.3,6.9,2.3,1.2,1.4,2.7,1.0,2.8,0.8,1.5,1.1,1.0,0.4,1.0,0.8,1.8],"R14":[0.7,2.0,2.8,1.8,2.3,2.1,3.7,5.2,8.4,7.2,4.6,1.4,1.8,0.5,0.4,0.3,0.6,0.4,0.6,0.5,0.2],"R126":[1.7,4.2,3.1,3.3,4.3,9.6,2.9,1.2,1.2,2.8,2.0,1.1,1.3,1.2,1.2,2.0,0.7,0.1,0.0,0.0,0.0],"SB-36":[0.4,1.9,2.3,1.9,1.6,2.7,2.9,3.0,3.6,2.1,2.8,2.1,2.8,1.8,1.3,1.0,1.3,1.1,1.4,0.9,0.7],"R139":[1.7,2.5,2.2,2.9,3.0,6.3,1.5,1.0,2.3,0.9,2.1,1.1,2.4,0.7,1.2,4.2,1.5,0.1,0.6,0.0,0.0],"R127":[0.4,1.8,1.9,1.5,2.6,3.2,2.9,1.5,1.3,1.0,1.4,2.1,7.2,1.4,0.6,0.9,0.5,0,0,0,0.0],"R137":[1.8,3.5,2.1,2.1,4.0,8.6,2.2,0.6,1.4,0.9,1.2,0.3,1.0,0.5,0.5,1.3,0.3,0.0,0,0,0],"R37":[1.3,3.2,2.8,3.1,4.2,2.5,2.9,1.8,2.9,1.4,1.3,0.4,0.2,0.2,0.1,0.0,0.0,0,0,0,0],"R39":[1.0,3.1,2.4,2.2,3.2,1.6,3.3,2.9,2.2,1.1,0.6,0.3,0.2,0.5,0.5,0.3,0.5,0.7,0.6,0.0,0],"FRIENDLY":[0.2,2.3,2.8,1.2,1.8,1.7,2.3,1.8,4.8,2.9,2.0,0.7,0.5,0.4,0.1,0.0,0.0,0.0,0.0,0.0,0.1],"R140":[0.8,1.6,1.2,1.1,1.3,3.8,2.3,0.3,0.8,0.4,0.8,0.2,0.8,0.3,0.5,1.0,0.4,0.1,0,0.0,0.0],"R42":[0.3,1.1,1.0,1.5,2.6,2.0,1.8,1.1,1.3,0.8,0.8,0.5,0.9,1.0,0.7,0.2,0.0,0.1,0,0.0,0.0],"R201":[0.4,2.0,1.4,1.3,1.1,1.2,0.7,2.0,1.0,0.6,1.1,0.4,1.1,0.7,0.7,1.1,0.4,0.1,0.0,0,0.0],"R36":[0.6,1.3,0.5,0.8,2.3,1.9,1.5,0.8,0.8,0.3,0.5,0.4,0.4,0.4,0.3,0.3,0.5,0.5,0.4,0.1,0.1],"R38":[0.9,2.6,2.4,2.0,2.1,1.0,0.4,0.2,1.5,0.1,0.1,0.1,0.1,0.1,0.0,0.0,0.3,0.1,0.0,0.0,0.0],"HOSTILE":[0.2,2.1,2.3,0.6,0.3,0.3,0.3,0.8,2.8,1.8,1.0,0.5,0.4,0.1,0.1,0.1,0.0,0.0,0.1,0.0,0.0],"R11":[0.6,0.8,0.7,0.8,1.2,1.8,2.9,1.3,1.4,1.3,0.0,0,0,0,0,0,0,0,0,0,0],"PLASTIC-1":[0.4,0.7,0.5,0.8,0.8,2.2,2.3,1.3,0.9,0.5,0.9,0.2,0.7,0.5,0.0,0,0,0,0,0,0],"R142":[0.3,1.7,1.2,0.9,0.5,0.5,0.4,0.4,0.2,1.7,2.2,0.2,0.5,0.1,0.3,0.4,0.2,0.1,0.0,0.0,0.0],"JESSE-1":[0.7,0.9,1.8,0.8,0.7,1.5,0.9,0.7,0.7,0.3,0.2,0.1,0.2,0.1,0,0,0,0,0.0,0,0],"R145":[0.1,1.3,0.3,0.4,0.1,0.6,0.3,0.2,0.7,0.3,0.5,0.1,0.6,0.4,0.2,0.7,0.2,0,0,0,0],"TEST":[0.7,1.7,1.6,0.7,0.4,0.3,0.5,0.4,0.4,0.0,0.0,0,0,0,0,0,0,0,0,0,0],"R252":[0.2,0.3,0.2,0.3,0.2,0.4,0.5,0.3,1.2,1.1,1.1,0.4,0.1,0.1,0.0,0,0.0,0,0.0,0.0,0.0],"R141":[0.2,0.8,0.5,0.4,0.2,0.5,0.3,0.4,0.0,0.1,0.5,0.2,0.4,0.2,0.3,0.3,0.2,0.0,0.0,0,0],"R143":[0.0,0.6,0.2,0.3,0.1,0.5,0.2,0.1,0.3,0.0,0.5,0.1,0.7,0.0,0.1,0.8,0.2,0,0,0,0],"R147":[0.1,0.6,0.1,0.3,0.1,0.4,0.1,0.1,0.5,0.0,0.5,0.1,0.6,0.1,0.1,0.9,0.1,0,0,0,0],"R41":[0.2,0.7,0.8,0.4,0.3,0.2,0.2,0.5,0.7,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0,0.0,0,0,0],"R131":[0.2,0.2,0.1,0.2,0.5,0.1,0.2,0.1,0.3,0.1,0.5,0.1,0.3,0.2,0.3,0.1,0.1,0.0,0.0,0,0],"R133":[0.1,0.2,0.1,0.2,0.2,0.4,0.1,0.1,0.4,0.1,0.3,0.1,0.4,0.0,0.0,0.1,0.4,0,0,0,0],"R132":[0.1,0.2,0.1,0.2,0.1,0.4,0.2,0.1,0.1,0.1,0.3,0.2,0.2,0.0,0,0,0,0,0,0,0],"R144":[0.0,0.2,0.3,0.2,0.1,0.1,0.1,0.0,0.0,0.0,0.0,0.0,0.0,0,0.0,0.0,0.0,0,0.0,0.0,0],"FULL-RAMPAGE-HIL-1":[0.0,0.0,0.0,0.0,0.4,0.4,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0],"R146":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0,0.0,0.0,0.0,0.0,0.0,0,0.0,0.0,0.0],"SIM-LOCAL":[0.1,0.0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"R40":[0.0,0.0,0,0,0.0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"SEAHOUND-1":[0.0,0.0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]};
 
 var VEL_ALL_ROWS=Object.keys(BOAT_VEL_DATA);
@@ -641,8 +645,8 @@ var VEL_ALL_ROWS=Object.keys(BOAT_VEL_DATA);
   function buildRows(boats){
     var html='';
     boats.forEach(function(bid){
-      var vals=BOAT_VEL_DATA[bid];
-      var total=vals.reduce(function(a,b){return a+b;},0);
+      var vals=BOAT_VEL_DATA[bid].slice(1);
+      var total=BOAT_VEL_DATA[bid].reduce(function(a,b){return a+b;},0);
       html+='<tr><td style="position:sticky;left:0;background:#0b1623;z-index:1;padding:4px 8px;white-space:nowrap;border-bottom:1px solid #0d1e2e;color:#cde0f0;font-weight:600">'+bid+'</td>';
       vals.forEach(function(v,i){
         html+='<td title="'+BOAT_VEL_BINS[i]+' kts: '+v.toFixed(1)+' NM" style="'+heatCol(v)+';padding:3px 3px;text-align:center;border-bottom:1px solid #0d1e2e;cursor:default"></td>';
@@ -675,6 +679,34 @@ function getSortValue(b){
   return b[currentMetric]||0;
 }
 
+
+
+
+var _dateTip=null;
+function toggleDateTip(e,row){
+  e.stopPropagation();
+  if(_dateTip){
+    _dateTip.remove();
+    if(_dateTip._row===row){_dateTip=null;return;}
+    _dateTip=null;
+  }
+  var dates=JSON.parse(decodeURIComponent(row.dataset.dates||'[]'));
+  if(!dates||!dates.length) return;
+  var tip=document.createElement('div');
+  tip.style.cssText='position:absolute;z-index:9999;background:#0b1623;border:1px solid #1e3a5f;border-radius:8px;padding:8px 12px;font-size:11px;font-family:monospace;color:#cde0f0;max-height:200px;overflow-y:auto;min-width:130px;box-shadow:0 4px 20px rgba(0,0,0,0.5)';
+  var sorted=dates.slice().sort(function(a,b){return b.localeCompare(a);});
+  tip.innerHTML='<div style="color:#8899aa;margin-bottom:4px;font-size:9px;letter-spacing:1px">WATER DATES ('+sorted.length+')</div>'+sorted.map(function(d){return'<div>'+d+'</div>';}).join('');
+  tip._row=row;
+  document.body.style.position='relative';
+  document.body.appendChild(tip);
+  var rect=row.getBoundingClientRect();
+  var scrollY=window.pageYOffset||document.documentElement.scrollTop;
+  var scrollX=window.pageXOffset||document.documentElement.scrollLeft;
+  tip.style.top=(rect.bottom+scrollY+4)+'px';
+  tip.style.left=(rect.left+scrollX)+'px';
+  _dateTip=tip;
+}
+document.addEventListener('click',function(){if(_dateTip){_dateTip.remove();_dateTip=null;}});
 function renderVessels(){
   var isDate=currentMetric==='last_water';
   var maxVal=isDate?1:Math.max.apply(null,ALL_BOATS.map(function(b){return b[currentMetric]||0;}));
@@ -698,7 +730,10 @@ function renderVessels(){
       pct=maxVal>0?(val/maxVal)*100:0;
       dispVal=val>0?val.toFixed(1)+unit:'--';
     }
-    return '<div class="vessel-row"><div class="vessel-id">'+b.id+'</div><div class="vessel-bar-wrap"><div class="vessel-bar" style="width:'+pct+'%;background:'+col+'"></div></div><div class="vessel-val" style="color:'+col+';width:90px">'+dispVal+'</div><div class="vessel-date" style="width:50px;color:#a78bfa">'+(b.water_hrs>0?b.water_hrs.toFixed(1)+'h':'--')+'</div></div>';
+    var dates=b.water_dates&&b.water_dates.length?b.water_dates.slice().reverse():[];
+    var datesHtml=dates.length?'<div style="color:#8899aa;margin-bottom:4px;letter-spacing:1px;font-size:9px">WATER DATES ('+dates.length+')</div>'+dates.map(function(d){return'<div style="color:#cde0f0">'+d+'</div>';}).join(''):'<div style="color:#8899aa">No dates recorded</div>';
+    var hasDateHint=dates.length?'<span style="margin-left:3px;opacity:0.5;font-size:8px">&#128197;</span>':'';
+    return '<div class="vessel-row" style="cursor:pointer" data-dates="'+encodeURIComponent(JSON.stringify(dates))+'" onclick="toggleDateTip(event,this)"><div class="vessel-id">'+b.id+'</div><div class="vessel-bar-wrap"><div class="vessel-bar" style="width:'+pct+'%;background:'+col+'"></div></div><div class="vessel-val" style="color:'+col+';width:90px">'+dispVal+'</div><div class="vessel-date" style="width:50px;color:#a78bfa">'+(b.water_hrs>0?b.water_hrs.toFixed(1)+'h':'--')+hasDateHint+'</div></div>';
   }).join('');
 
   // Update sort arrow indicators
@@ -779,6 +814,13 @@ function buildScatterChart(){
 }
 
 function setAlertBoat(bid){currentAlertBoat=bid;buildAlertBoatBtns();buildScatterChart();}
+// Vessel row click delegation for water dates tooltip
+document.addEventListener('click', function(e){
+  var row = e.target.closest && e.target.closest('.vessel-row');
+  if(row && row.dataset.dates){
+    toggleDateTip(e, row);
+  }
+});
 try{buildAlertBoatBtns();}catch(e){}
 setTimeout(function(){try{buildScatterChart();}catch(e){}},100);
 
@@ -786,24 +828,24 @@ setTimeout(function(){try{buildScatterChart();}catch(e){}},100);
 var BOAT_DETAILS=[
   {id:"15",rid:"R15",asset_type:"USV 6.0",fleet:"Havoc Internal",status:"Decommissioned",notes:"Electrical system grounding eval bilge, battery straps, wire routing",location:"Hickam AFB",schedule:"AFC Conop Rehearsal, AFC Packout, Alumni Ventures Conference Live demo, AFC - Hawaii"},
   {id:"36",rid:"R36",asset_type:"USV 6.0",fleet:"Leased Asset",status:"Decommissioned",notes:"",location:"Bldg 82",schedule:""},
-  {id:"140",rid:"R140",asset_type:"USV Gen 2 ILMOR",fleet:"",status:"Available",notes:"",location:"",schedule:""},
+  {id:"140",rid:"R140",asset_type:"USV Gen 2 ILMOR",fleet:"",status:"Available",notes:"Assigned to Project Mayhem",location:"",schedule:""},
   {id:"42",rid:"R42",asset_type:"USV 6.0",fleet:"Leased Asset",status:"Decommissioned",notes:"",location:"Fulcrum",schedule:""},
-  {id:"108",rid:"R108",asset_type:"USV Gen 2 ILMOR",fleet:"Demo Asset",status:"Available",notes:"",location:"RIMS",schedule:"Silent Swarm Shipment, SSCI_DIU Demo, LMCO Shipment week, LMCO Demo"},
+  {id:"108",rid:"R108",asset_type:"USV Gen 2 ILMOR",fleet:"Demo Asset",status:"Available",notes:"",location:"Washington DC",schedule:"Silent Swarm Shipment, SSCI_DIU Demo, LMCO Shipment week, LMCO Demo"},
   {id:"106",rid:"R106",asset_type:"USV Gen 2 ILMOR",fleet:"Hawaii Fleet",status:"Partially Mission Capable",notes:"Orca getting hot New orca installed 1/14/26",location:"Hawaii",schedule:"SSCI Radar Bay Testing"},
-  {id:"122",rid:"R122",asset_type:"USV Gen 2 ILMOR",fleet:"Testing Asset",status:"Available",notes:"Long Term Testing",location:"RIMS",schedule:""},
+  {id:"122",rid:"R122",asset_type:"USV Gen 2 ILMOR",fleet:"Testing Asset",status:"Available",notes:"Long Term Testing",location:"Quonset",schedule:""},
   {id:"11",rid:"R11",asset_type:"USV-Prototype",fleet:"NIWC",status:"Decommissioned",notes:"",location:"NIWC-LANT: Charleston",schedule:"NIWC Charleston Training"},
   {id:"127",rid:"R127",asset_type:"USV Gen 2 ILMOR",fleet:"Granite",status:"Available",notes:"",location:"CEOM",schedule:""},
   {id:"38",rid:"R38",asset_type:"USV 6.0",fleet:"Leased Asset",status:"Decommissioned",notes:"",location:"Bldg 82",schedule:""},
   {id:"35",rid:"R35",asset_type:"USV 6.0",fleet:"Leased Asset",status:"Decommissioned",notes:"",location:"Bldg 82",schedule:""},
-  {id:"138",rid:"R138",asset_type:"USV Gen 2 ILMOR",fleet:"",status:"Assigned to Customer",notes:"",location:"Austin",schedule:""},
+  {id:"138",rid:"R138",asset_type:"USV Gen 2 ILMOR",fleet:"",status:"Assigned to Customer",notes:"25ID",location:"Miami eMerge",schedule:""},
   {id:"19",rid:"R19",asset_type:"USV 3.0",fleet:"Havoc Internal",status:"Decommissioned",notes:"",location:"CEOM",schedule:"TF 66 Etna Rehearsals, TF 66 Etna Shipment"},
-  {id:"143",rid:"R143",asset_type:"USV Gen 2 ILMOR",fleet:"",status:"Available",notes:"",location:"",schedule:""},
-  {id:"145",rid:"R145",asset_type:"USV Gen 2 ILMOR",fleet:"",status:"Available",notes:"",location:"",schedule:""},
+  {id:"143",rid:"R143",asset_type:"USV Gen 2 ILMOR",fleet:"",status:"Available",notes:"Assigned to Project Mayhem",location:"",schedule:""},
+  {id:"145",rid:"R145",asset_type:"USV Gen 2 ILMOR",fleet:"",status:"Available",notes:"Assigned to Project Mayhem",location:"",schedule:""},
   {id:"128",rid:"R128",asset_type:"USV Gen 2 ILMOR",fleet:"Granite",status:"Available",notes:"",location:"CEOM",schedule:""},
   {id:"116",rid:"R116",asset_type:"USV Gen 2 ILMOR",fleet:"Testing Asset",status:"Testing",notes:"Integrated HMI to Ilmor, phantom estop issue. new orca installed",location:"Bldg 82",schedule:"SSCI_DIU Demo"},
   {id:"136",rid:"R136",asset_type:"USV Gen 2 ILMOR",fleet:"Testing Asset",status:"Available",notes:"Testing Failsafe with @paul and @ashley , new FW added",location:"Bldg 82",schedule:""},
-  {id:"112",rid:"R112",asset_type:"USV Gen 2 ILMOR",fleet:"Demo Asset",status:"Available",notes:"",location:"RIMS",schedule:""},
-  {id:"117",rid:"R117",asset_type:"USV Gen 2 ILMOR",fleet:"Demo Asset",status:"Available",notes:"",location:"RIMS",schedule:""},
+  {id:"112",rid:"R112",asset_type:"USV Gen 2 ILMOR",fleet:"Demo Asset",status:"Available",notes:"",location:"Washington DC",schedule:""},
+  {id:"117",rid:"R117",asset_type:"USV Gen 2 ILMOR",fleet:"Demo Asset",status:"Available",notes:"",location:"Quonset",schedule:""},
   {id:"32",rid:"R32",asset_type:"USV 3.0",fleet:"Havoc Internal",status:"Decommissioned",notes:"Long Range",location:"TBD-San Diego",schedule:"JES Shipping Window:  RI to CA, JES Parallel Demo"},
   {id:"119",rid:"R119",asset_type:"USV Gen 2 ILMOR",fleet:"USARPAC",status:"Assigned to Customer",notes:"Shipped 12/18 - Loan",location:"Hawaii",schedule:""},
   {id:"41",rid:"R41",asset_type:"USV 6.0",fleet:"Leased Asset",status:"Decommissioned",notes:"",location:"Fulcrum",schedule:""},
@@ -817,15 +859,15 @@ var BOAT_DETAILS=[
   {id:"33",rid:"R33",asset_type:"USV 6.0",fleet:"Leased Asset",status:"Decommissioned",notes:"",location:"Bldg 82",schedule:"DIU SSCI Demo- Gen 2"},
   {id:"121",rid:"R121",asset_type:"USV Gen 2 ILMOR",fleet:"Testing Asset",status:"Testing",notes:"",location:"Bldg 82",schedule:""},
   {id:"103",rid:"R103",asset_type:"USV Gen 2 ILMOR",fleet:"San Diego Fleet",status:"Available",notes:"Good Boat",location:"TBD-San Diego",schedule:"Six Maritime: Port of San Diego Demo"},
-  {id:"137",rid:"R137",asset_type:"USV Gen 2 ILMOR",fleet:"",status:"Assigned to Customer",notes:"",location:"Austin",schedule:""},
+  {id:"137",rid:"R137",asset_type:"USV Gen 2 ILMOR",fleet:"",status:"Assigned to Customer",notes:"25ID",location:"Miami eMerge",schedule:""},
   {id:"26",rid:"R26",asset_type:"USV 3.0",fleet:"Havoc Internal",status:"Decommissioned",notes:"",location:"TBD-San Diego",schedule:"SSCI Workup 3, SSCI Radar Bay Testing, SSCI Radar & EO Bay Testing Fall Back, JES Shipping Window:  RI to CA, JES Parallel Demo"},
   {id:"04",rid:"R04",asset_type:"USV-Prototype",fleet:"NIWC",status:"Decommissioned",notes:"",location:"CEOM",schedule:"TF 66 Veseuvius Spiral 2 (Avelino)"},
   {id:"39",rid:"R39",asset_type:"USV 6.0",fleet:"Leased Asset",status:"Decommissioned",notes:"",location:"Bldg 82",schedule:""},
   {id:"23",rid:"R23",asset_type:"USV 3.0",fleet:"Havoc Internal",status:"Decommissioned",notes:"",location:"TBD-San Diego",schedule:"SSCI Workup 2 - on hold, SSCI Workup 3, SSCI Radar Bay Testing, SSCI Radar & EO Bay Testing Fall Back, JES Shipping Window:  RI to CA, JES Parallel Demo"},
   {id:"109",rid:"R109",asset_type:"USV Gen 2 ILMOR",fleet:"San Diego Fleet",status:"Available",notes:"Good Boat with radar",location:"TBD-San Diego",schedule:"Six Maritime: Port of San Diego Demo"},
   {id:"34",rid:"R34",asset_type:"USV 6.0",fleet:"Leased Asset",status:"Decommissioned",notes:"",location:"Bldg 82",schedule:""},
-  {id:"147",rid:"R147",asset_type:"USV Gen 2 ILMOR",fleet:"",status:"Available",notes:"",location:"",schedule:""},
-  {id:"141",rid:"R141",asset_type:"USV Gen 2 ILMOR",fleet:"",status:"Available",notes:"",location:"",schedule:""},
+  {id:"147",rid:"R147",asset_type:"USV Gen 2 ILMOR",fleet:"",status:"Available",notes:"Assigned to Project Mayhem",location:"",schedule:""},
+  {id:"141",rid:"R141",asset_type:"USV Gen 2 ILMOR",fleet:"",status:"Available",notes:"Assigned to Project Mayhem",location:"",schedule:""},
   {id:"03",rid:"R03",asset_type:"USV-Prototype",fleet:"NIWC",status:"Decommissioned",notes:"",location:"CEOM",schedule:"TF 66 Veseuvius Spiral 2 (Avelino)"},
   {id:"09",rid:"R09",asset_type:"USV-Prototype",fleet:"NIWC",status:"Decommissioned",notes:"",location:"CEOM",schedule:"TF 66 Veseuvius Spiral 2 (Avelino)"},
   {id:"31",rid:"R31",asset_type:"USV 3.0",fleet:"Havoc Internal",status:"Decommissioned",notes:"Long Range",location:"TBD-San Diego",schedule:"JES Shipping Window:  RI to CA, JES Parallel Demo"},
@@ -838,10 +880,10 @@ var BOAT_DETAILS=[
   {id:"123",rid:"R123",asset_type:"USV Gen 2 ILMOR",fleet:"San Diego Fleet",status:"Available",notes:"Good Boat",location:"TBD-San Diego",schedule:"Six Maritime: Port of San Diego Demo"},
   {id:"118",rid:"R118",asset_type:"USV Gen 2 ILMOR",fleet:"USARPAC",status:"Assigned to Customer",notes:"Shipped 12/18 - Loan",location:"Hawaii",schedule:""},
   {id:"Chariot",rid:"Chariot",asset_type:"Landing Craft Prototype",fleet:"Havoc Internal",status:"Decommissioned",notes:"",location:"Bldg 82",schedule:"Swarmbotics Integration Testing, AFC - Hawaii, AFC - Hawaii Shipment, AFC Conop Rehearsal, AFC Packout"},
-  {id:"139",rid:"R139",asset_type:"USV Gen 2 ILMOR",fleet:"",status:"Assigned to Customer",notes:"",location:"Austin",schedule:""},
+  {id:"139",rid:"R139",asset_type:"USV Gen 2 ILMOR",fleet:"",status:"Assigned to Customer",notes:"25ID",location:"Miami eMerge",schedule:""},
   {id:"201",rid:"R201",asset_type:"USV Gen 2 ILMOR",fleet:"",status:"Under Maintenance",notes:"Janicki boat (need reinspect)",location:"Quonset",schedule:""},
   {id:"13",rid:"R13",asset_type:"USV 6.0",fleet:"Havoc Internal",status:"Decommissioned",notes:"bilge, battery straps, wire routing",location:"Hickam AFB",schedule:"AFC Conop Rehearsal, AFC Packout, Alumni Ventures Conference Live demo, AFC - Hawaii"},
-  {id:"142",rid:"R142",asset_type:"USV Gen 2 ILMOR",fleet:"",status:"Available",notes:"",location:"",schedule:""},
+  {id:"142",rid:"R142",asset_type:"USV Gen 2 ILMOR",fleet:"",status:"Available",notes:"Assigned to Project Mayhem",location:"",schedule:""},
   {id:"24",rid:"R24",asset_type:"USV 3.0",fleet:"Havoc Internal",status:"Decommissioned",notes:"",location:"TBD-San Diego",schedule:"SSCI Workup 3, SSCI Radar Bay Testing, SSCI Radar & EO Bay Testing Fall Back, JES Shipping Window:  RI to CA, JES Parallel Demo"},
   {id:"125",rid:"R125",asset_type:"USV Gen 2 ILMOR",fleet:"USARPAC",status:"Assigned to Customer",notes:"Shipped 12/18 - Loan",location:"Hawaii",schedule:""},
   {id:"107",rid:"R107",asset_type:"USV Gen 2 ILMOR",fleet:"Hawaii Fleet",status:"Out of Service",notes:"ilmor swap completr with new steering. Needs HMI update and TLC. - AV 15AUG25",location:"Hawaii",schedule:"Silent Swarm Shipment"},
@@ -857,7 +899,7 @@ var BOAT_DETAILS=[
   {id:"02",rid:"R02",asset_type:"USV-Prototype",fleet:"NIWC",status:"Decommissioned",notes:"",location:"CEOM",schedule:"TF 66 Veseuvius Spiral 2 (Avelino)"},
   {id:"20",rid:"R20",asset_type:"USV 3.0",fleet:"Havoc Internal",status:"Decommissioned",notes:"",location:"CEOM",schedule:"TF 66 Etna Rehearsals, TF 66 Etna Shipment"},
   {id:"134",rid:"R134",asset_type:"USV Gen 2 ILMOR",fleet:"Engineering Asset",status:"Partially Mission Capable",notes:"Up to 134 need retouch, need to complete ATP",location:"Bldg 82",schedule:""},
-  {id:"114",rid:"R114",asset_type:"USV Gen 2 ILMOR",fleet:"Demo Asset",status:"Available",notes:"",location:"RIMS",schedule:"SSCI_DIU Demo"},
+  {id:"114",rid:"R114",asset_type:"USV Gen 2 ILMOR",fleet:"Demo Asset",status:"Available",notes:"",location:"Washington DC",schedule:"SSCI_DIU Demo"},
   {id:"07",rid:"R07",asset_type:"USV-Prototype",fleet:"NIWC",status:"Decommissioned",notes:"",location:"CEOM",schedule:"TF 66 Veseuvius Spiral 2 (Avelino)"},
   {id:"22",rid:"R22",asset_type:"USV 3.0",fleet:"Havoc Internal",status:"Decommissioned",notes:"",location:"CEOM",schedule:"TF 66 Etna Rehearsals, TF 66 Etna Shipment"},
   {id:"17",rid:"R17",asset_type:"USV 6.0",fleet:"Havoc Internal",status:"Decommissioned",notes:"Tohatsu on it Gen 2 testing",location:"Bldg 82",schedule:"SSCI Workup 1, SSCI Workup 2 - on hold, Alumni Ventures Conference Live demo"},
@@ -867,12 +909,13 @@ var BOAT_DETAILS=[
   {id:"27",rid:"R27",asset_type:"USV 3.0",fleet:"Havoc Internal",status:"Decommissioned",notes:"Long Range",location:"TBD-San Diego",schedule:"SSCI Workup 3, SSCI Radar Bay Testing, SSCI Radar & EO Bay Testing Fall Back, JES Shipping Window:  RI to CA, JES Parallel Demo"},
   {id:"01",rid:"R01",asset_type:"USV-Prototype",fleet:"NIWC",status:"Decommissioned",notes:"",location:"CEOM",schedule:"TF 66 Veseuvius Spiral 2 (Avelino)"},
   {id:"131",rid:"R131",asset_type:"USV Gen 2 ILMOR",fleet:"USARPAC",status:"Assigned to Customer",notes:"Shipped 12/18",location:"Hawaii",schedule:""},
+  {id:"200",rid:"R200",asset_type:"USV Gen 2 ILMOR",fleet:"Engineering Asset",status:"In Build",notes:"Clear Janicki boat (need reinspect)",location:"Bldg 82",schedule:""},
   {id:"126",rid:"R126",asset_type:"USV Gen 2 ILMOR",fleet:"Granite",status:"Available",notes:"",location:"CEOM",schedule:""},
   {id:"30",rid:"R30",asset_type:"USV 3.0",fleet:"Havoc Internal",status:"Decommissioned",notes:"Long Range",location:"TBD-San Diego",schedule:"JES Shipping Window:  RI to CA, JES Parallel Demo"},
   {id:"102",rid:"R102",asset_type:"USV Gen 2 ILMOR",fleet:"Hawaii Fleet",status:"Available",notes:"Complete - AV 15AUG25",location:"Hawaii",schedule:"SSCI Radar Bay Testing"},
   {id:"28",rid:"R28",asset_type:"USV 3.0",fleet:"Havoc Internal",status:"Decommissioned",notes:"Long Range",location:"TBD-San Diego",schedule:"JES Shipping Window:  RI to CA, JES Parallel Demo"},
   {id:"113",rid:"R113",asset_type:"USV Gen 2 ILMOR",fleet:"Engineering Asset",status:"Testing",notes:"Vita doing dual GPS integration - not usable for other testing. Prototype Ilmor integrated steering outboard installed",location:"Bldg 82",schedule:"LMCO Shipment week, LMCO Demo"},
-  {id:"105",rid:"R105",asset_type:"USV Gen 2 ILMOR",fleet:"Demo Asset",status:"Available",notes:"UAS Launch Platform",location:"RIMS",schedule:"SSCI Radar Bay Testing, SSCI_DIU Demo, LMCO Shipment week, LMCO Demo"},
+  {id:"105",rid:"R105",asset_type:"USV Gen 2 ILMOR",fleet:"Demo Asset",status:"Available",notes:"UAS Launch Platform",location:"Washington DC",schedule:"SSCI Radar Bay Testing, SSCI_DIU Demo, LMCO Shipment week, LMCO Demo"},
   {id:"101",rid:"R101",asset_type:"USV Gen 2 ILMOR",fleet:"Hawaii Fleet",status:"Available",notes:"Boat repaired 1/14/26 New Orca, Hmi box, Icu,",location:"Hawaii",schedule:"SSCI Radar Bay Testing"}
 ];
 
