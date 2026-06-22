@@ -138,6 +138,7 @@ h1{font-size:26px;font-weight:800;color:#e8f4ff;letter-spacing:-0.5px}
   <button class="tab" onclick="switchTab('steering')" id="tab-btn-steering"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:inline-block;vertical-align:-2px"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="9"/><line x1="20.66" y1="7" x2="14.6" y2="10.5"/><line x1="20.66" y1="17" x2="14.6" y2="13.5"/><line x1="12" y1="22" x2="12" y2="15"/><line x1="3.34" y1="17" x2="9.4" y2="13.5"/><line x1="3.34" y1="7" x2="9.4" y2="10.5"/></svg> Steering Alerts <span class="badge">6</span></button>
   <button class="tab" onclick="switchTab('prop')" id="tab-btn-prop"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style="display:inline-block;vertical-align:-2px"><circle cx="12" cy="12" r="2.5"/><ellipse cx="12" cy="6" rx="3" ry="5.5"/><ellipse cx="17.2" cy="15" rx="3" ry="5.5" transform="rotate(120 17.2 15)"/><ellipse cx="6.8" cy="15" rx="3" ry="5.5" transform="rotate(-120 6.8 15)"/></svg> Prop Alerts <span class="badge">4</span></button>
   <button class="tab" onclick="switchTab('details')" id="tab-btn-details">&#9875; Boat Details</button>
+  <button class="tab" onclick="switchTab('summary')" id="tab-btn-summary">&#128202; GTM Summary</button>
 </div>
 
 <div id="tab-overview" class="active">
@@ -448,6 +449,38 @@ h1{font-size:26px;font-weight:800;color:#e8f4ff;letter-spacing:-0.5px}
   <div class="footer">Asset data &middot; airtable_export.xlsx</div>
 </div>
 
+<div id="tab-summary">
+  <div class="panel">
+    <div class="panel-title"><div class="panel-title-bar" style="background:#0ef0c4"></div><div class="panel-title-text">Fleet Total Hours (On Water + On Land)</div></div>
+    <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:0" id="summary-kpis"></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title"><div class="panel-title-bar" style="background:#3b9eca"></div><div class="panel-title-text">Total Hours by Category</div></div>
+    <div id="summary-cat-table"></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title"><div class="panel-title-bar" style="background:#a78bfa"></div><div class="panel-title-text">Total Hours by Vessel</div></div>
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <input type="text" id="summary-filter" placeholder="Filter boats..." style="background:#0b1623;border:1px solid #1e3a5f;border-radius:6px;padding:6px 10px;color:#cde0f0;font-size:12px;font-family:'DM Mono',monospace;flex:1;max-width:240px" oninput="renderSummaryTable()">
+    </div>
+    <div style="display:grid;grid-template-columns:70px 90px 1fr 90px 90px 100px;gap:0;padding:6px 8px;border-bottom:1px solid #162435;font-size:9px;letter-spacing:1px;color:#8899aa;text-transform:uppercase">
+      <div id="summary-th-id" onclick="sortSummary('id')" style="cursor:pointer;user-select:none">BOAT <span id="summary-arrow-id"></span></div>
+      <div id="summary-th-category" onclick="sortSummary('category')" style="cursor:pointer;user-select:none">CATEGORY <span id="summary-arrow-category"></span></div>
+      <div>SHARE OF TOTAL</div>
+      <div id="summary-th-water" onclick="sortSummary('total_hrs')" style="text-align:right;cursor:pointer;user-select:none">WATER HRS <span id="summary-arrow-water"></span></div>
+      <div id="summary-th-land" onclick="sortSummary('land_hrs')" style="text-align:right;cursor:pointer;user-select:none">LAND HRS <span id="summary-arrow-land"></span></div>
+      <div id="summary-th-total" onclick="sortSummary('total_combined')" style="text-align:right;cursor:pointer;user-select:none">TOTAL HRS <span id="summary-arrow-total"></span></div>
+    </div>
+    <div class="vessel-scroll" id="summary-vessel-list" style="max-height:480px"></div>
+  </div>
+  <div class="footer">Total Hrs = On-Water Hrs (water + water moving) + Land Hrs &middot; +8,282 Gen1 hrs fixed addition to Rampages &middot; from polydetails.xlsx Summary tab</div>
+</div>
+
+
+
+
 <script>
 var MONTHLY=[
   {month:"Jun '25",water_dist:35.9,water_moving_dist:29.6,water_hrs:20.6},
@@ -665,6 +698,116 @@ document.getElementById('kpi-row').innerHTML=kpis.map(function(k){
   return '<div class="kpi-card"><div class="kpi-accent" style="background:'+k.color+'"></div><div class="kpi-label">'+k.label+'</div><div class="kpi-value">'+k.value+'</div><div class="kpi-sub">'+k.sub+'</div></div>';
 }).join('');
 
+// ── SUMMARY TAB ────────────────────────────────────────────────────────────
+var MANUAL_HRS_ADDITION = 8282; // Gen1 Rampages hrs missing from telemetry — fixed constant
+var summarySort='total_combined';
+var summarySortAsc=false;
+var summaryBuilt=false;
+
+function buildSummaryTab(){
+  // KPI cards
+  var totalWaterAll = ALL_BOATS.reduce(function(a,b){return a+(b.total_hrs||0);},0);
+  var totalLandAll  = ALL_BOATS.reduce(function(a,b){return a+(b.land_hrs||0);},0);
+  var totalCombined = totalWaterAll + totalLandAll + MANUAL_HRS_ADDITION;
+  var sKpis=[
+    {label:'Total Hours (Water + Land)',value:Math.round(totalCombined).toLocaleString(),sub:'All vessels combined (incl. +8,282 Gen1)',color:C.TEAL},
+    {label:'On-Water Hours',value:Math.round(totalWaterAll).toLocaleString(),sub:'Water + water moving',color:C.PURPLE},
+    {label:'On-Land Hours',value:Math.round(totalLandAll).toLocaleString(),sub:'Land / trailered',color:C.AMBER},
+    {label:'Active Vessels',value:ALL_BOATS.length,sub:'Boats with hours logged',color:C.GREEN}
+  ];
+  document.getElementById('summary-kpis').innerHTML=sKpis.map(function(k){
+    return '<div class="kpi-card"><div class="kpi-accent" style="background:'+k.color+'"></div><div class="kpi-label">'+k.label+'</div><div class="kpi-value">'+k.value+'</div><div class="kpi-sub">'+k.sub+'</div></div>';
+  }).join('');
+
+  // Category table
+  var catColors={Rampages:C.BLUE,Other:C.AMBER,Sims:C.PINK};
+  var catRows=CATEGORIES.map(function(c){
+    var boatsInCat=ALL_BOATS.filter(function(b){return b.category===c.name;});
+    var wHrs=boatsInCat.reduce(function(a,b){return a+(b.total_hrs||0);},0);
+    var lHrs=boatsInCat.reduce(function(a,b){return a+(b.land_hrs||0);},0);
+    var manualAdj=c.name==='Rampages'?MANUAL_HRS_ADDITION:0;
+    var tHrs=wHrs+lHrs+manualAdj;
+    return {name:c.name,count:boatsInCat.length,water:wHrs,land:lHrs,manual:manualAdj,total:tHrs,color:catColors[c.name]||C.MUTED};
+  });
+  var grandTotal=catRows.reduce(function(a,c){return a+c.total;},0);
+  document.getElementById('summary-cat-table').innerHTML=
+    '<div style="display:grid;grid-template-columns:120px 70px 100px 100px 100px 1fr;gap:0;padding:6px 8px;border-bottom:1px solid #162435;font-size:9px;letter-spacing:1px;color:#8899aa;text-transform:uppercase">'+
+    '<div>CATEGORY</div><div>BOATS</div><div style="text-align:right">WATER HRS</div><div style="text-align:right">LAND HRS</div><div style="text-align:right">TOTAL HRS</div><div>SHARE</div></div>'+
+    catRows.map(function(c){
+      var pct=grandTotal>0?(c.total/grandTotal*100):0;
+      var noteBadge=c.manual?'<span style="display:inline-block;background:#1a2a1a;color:'+C.GREEN+';font-size:9px;padding:2px 6px;border-radius:4px;margin-left:6px;letter-spacing:0.5px">+'+c.manual.toLocaleString()+' manual</span>':'';
+      return '<div style="display:grid;grid-template-columns:120px 70px 100px 100px 100px 1fr;gap:0;padding:8px 8px;border-bottom:1px solid #0d1e2e;align-items:center">'+
+        '<div style="color:'+c.color+';font-weight:700;font-size:12px">'+c.name+noteBadge+'</div>'+
+        '<div style="font-family:\'DM Mono\',monospace;font-size:11px;color:'+C.MUTED+'">'+c.count+'</div>'+
+        '<div style="text-align:right;font-family:\'DM Mono\',monospace;font-size:11px;color:#a78bfa">'+c.water.toFixed(1)+'h</div>'+
+        '<div style="text-align:right;font-family:\'DM Mono\',monospace;font-size:11px;color:'+C.AMBER+'">'+c.land.toFixed(1)+'h</div>'+
+        '<div style="text-align:right;font-family:\'DM Mono\',monospace;font-size:12px;font-weight:700;color:'+C.TEAL+'">'+c.total.toFixed(1)+'h</div>'+
+        '<div style="display:flex;align-items:center;gap:8px"><div style="flex:1;height:8px;background:#0d1520;border-radius:4px;overflow:hidden"><div style="width:'+pct.toFixed(1)+'%;height:100%;background:'+c.color+'"></div></div><span style="font-size:10px;color:'+C.MUTED+';font-family:\'DM Mono\',monospace;width:36px">'+pct.toFixed(1)+'%</span></div>'+
+        '</div>';
+    }).join('')+
+    '<div style="display:grid;grid-template-columns:120px 70px 100px 100px 100px 1fr;gap:0;padding:10px 8px;border-top:2px solid #1e3a5f;margin-top:4px">'+
+    '<div style="color:'+C.TEXT+';font-weight:700;font-size:12px">TOTAL</div><div></div><div></div><div></div>'+
+    '<div style="text-align:right;font-family:\'DM Mono\',monospace;font-size:13px;font-weight:800;color:'+C.TEAL+'">'+grandTotal.toFixed(1)+'h</div><div></div></div>';
+
+  renderSummaryTable();
+  if(!summaryBuilt){
+    var thEl=document.getElementById('summary-th-total');
+    var arrowEl=document.getElementById('summary-arrow-total');
+    if(thEl) thEl.style.color='#a78bfa';
+    if(arrowEl) arrowEl.textContent='\u25bc';
+  }
+  summaryBuilt=true;
+}
+
+function sortSummary(col){
+  if(summarySort===col){summarySortAsc=!summarySortAsc;} else {summarySort=col;summarySortAsc=false;}
+  var map={total_combined:'total',total_hrs:'water',land_hrs:'land',id:'id',category:'category'};
+  ['total','water','land','id','category'].forEach(function(k){
+    var th=document.getElementById('summary-th-'+k);
+    var arrow=document.getElementById('summary-arrow-'+k);
+    if(th) th.style.color='#8899aa';
+    if(arrow) arrow.textContent='';
+  });
+  var activeKey=map[col];
+  var thEl=document.getElementById('summary-th-'+activeKey);
+  var arrowEl=document.getElementById('summary-arrow-'+activeKey);
+  if(thEl) thEl.style.color='#a78bfa';
+  if(arrowEl) arrowEl.textContent=summarySortAsc?'\u25b2':'\u25bc';
+  renderSummaryTable();
+}
+
+function renderSummaryTable(){
+  var filterVal=(document.getElementById('summary-filter').value||'').toUpperCase();
+  var rows=ALL_BOATS.map(function(b){
+    var manualAdj=b.category==='Rampages'?0:0; // per-boat manual adj not applicable; shown at category level only
+    return {id:b.id,category:b.category,total_hrs:b.total_hrs||0,land_hrs:b.land_hrs||0,total_combined:(b.total_hrs||0)+(b.land_hrs||0)};
+  }).filter(function(r){return !filterVal||r.id.toUpperCase().indexOf(filterVal)>=0;});
+
+  rows.sort(function(a,b){
+    var av=summarySort==='id'?a.id:a[summarySort];
+    var bv=summarySort==='id'?b.id:b[summarySort];
+    var r=av>bv?1:av<bv?-1:0;
+    return summarySortAsc?r:-r;
+  });
+
+  var maxTotal=Math.max.apply(null,rows.map(function(r){return r.total_combined;}).concat([1]));
+  var catColors={Rampages:C.BLUE,Other:C.AMBER,Sims:C.PINK};
+
+  document.getElementById('summary-vessel-list').innerHTML=rows.map(function(r){
+    var col=catColors[r.category]||C.MUTED;
+    var pct=(r.total_combined/maxTotal*100).toFixed(1);
+    var waterPct=r.total_combined>0?(r.total_hrs/r.total_combined*100):0;
+    return '<div style="display:grid;grid-template-columns:70px 90px 1fr 90px 90px 100px;gap:0;padding:6px 8px;border-bottom:1px solid #0d1e2e;align-items:center">'+
+      '<div style="font-family:\'DM Mono\',monospace;font-size:11px;color:'+C.TEXT+';font-weight:700">'+r.id+'</div>'+
+      '<div style="font-size:9px;color:'+col+'">'+r.category+'</div>'+
+      '<div style="display:flex;align-items:center;height:14px;background:#0d1520;border-radius:3px;overflow:hidden"><div style="width:'+waterPct.toFixed(1)+'%;height:100%;background:#a78bfa"></div><div style="width:'+(100-waterPct).toFixed(1)+'%;height:100%;background:'+C.AMBER+'"></div></div>'+
+      '<div style="text-align:right;font-family:\'DM Mono\',monospace;font-size:10px;color:#a78bfa">'+r.total_hrs.toFixed(1)+'h</div>'+
+      '<div style="text-align:right;font-family:\'DM Mono\',monospace;font-size:10px;color:'+C.AMBER+'">'+r.land_hrs.toFixed(1)+'h</div>'+
+      '<div style="text-align:right;font-family:\'DM Mono\',monospace;font-size:11px;font-weight:700;color:'+C.TEAL+'">'+r.total_combined.toFixed(1)+'h</div>'+
+      '</div>';
+  }).join('');
+}
+
 // Monthly chart
 new Chart(document.getElementById('monthlyChart'),{
   type:'line',
@@ -740,11 +883,6 @@ function getSortValue(b){
   if(currentMetric==='last_water') return b.last_water||'';
   return b[currentMetric]||0;
 }
-
-
-
-
-
 
 
 
@@ -1505,13 +1643,14 @@ document.getElementById('ov-steering-cards').innerHTML=Object.keys(STEERING_DATA
 }).join('');
 
 function switchTab(tab){
-  var tabs=['overview','alerts','icu','steering','prop','details'];
+  var tabs=['overview','alerts','icu','steering','prop','details','summary'];
   tabs.forEach(function(t){
     document.getElementById('tab-'+t).className=tab===t?'active':'';
     document.getElementById('tab-btn-'+t).className=tab===t?'tab active':'tab';
   });
   if(tab==='alerts')   setTimeout(function(){buildScatterChart();},50);
   if(tab==='icu')      setTimeout(function(){buildIcuChart();},50);
+  if(tab==='summary')  setTimeout(function(){buildSummaryTab();},50);
   if(tab==='steering') setTimeout(function(){buildSteeringChart();},50);
   if(tab==='prop') setTimeout(function(){buildPropChart();},50);
 }
