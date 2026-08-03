@@ -125,9 +125,10 @@ h1{font-size:26px;font-weight:800;color:#e8f4ff;letter-spacing:-0.5px}
     <div class="subtitle">2026-08-02</div>
   </div>
   <div class="pills">
-    <span class="pill" style="color:#0ef0c4">Rampages</span>
-    <span class="pill" style="color:#3b9eca">Other</span>
-    <span class="pill" style="color:#f5a623">Sims</span>
+    <span class="pill" style="color:#0ef0c4">USV</span>
+    <span class="pill" style="color:#3b9eca">Contacts</span>
+    <span class="pill" style="color:#f5a623">Sim/Test</span>
+    <span class="pill" style="color:#e84393">UGV</span>
   </div>
 </div>
 
@@ -172,9 +173,10 @@ h1{font-size:26px;font-weight:800;color:#e8f4ff;letter-spacing:-0.5px}
       <div style="font-size:9px;color:#8899aa;margin-bottom:5px;text-align:right;opacity:0.7">&#128197; click row for water dates</div>
       <div class="vessel-scroll" id="vessel-list"></div>
       <div class="legend-row" style="margin-top:10px">
-        <span><span style="color:#0ef0c4">&#9632;</span> Rampages</span>
-        <span><span style="color:#3b9eca">&#9632;</span> Other</span>
-        <span><span style="color:#f5a623">&#9632;</span> Sims</span>
+        <span><span style="color:#0ef0c4">&#9632;</span> USV</span>
+        <span><span style="color:#3b9eca">&#9632;</span> Contacts</span>
+        <span><span style="color:#f5a623">&#9632;</span> Sim/Test</span>
+        <span><span style="color:#e84393">&#9632;</span> UGV</span>
       </div>
     </div>
     <div class="panel" style="margin-bottom:0">
@@ -683,7 +685,7 @@ var ALERT_DATA={
 
 // Colors
 var C = {TEAL:'#0ef0c4',BLUE:'#3b9eca',AMBER:'#f5a623',MUTED:'#8899aa',TEXT:'#cde0f0',PURPLE:'#a78bfa',PINK:'#e84393',SKY:'#38bdf8',ORANGE:'#f97316',GREEN:'#22d3a0',BORDER:'#162435'};
-var CAT_COLORS = {Rampages:C.TEAL,Other:C.BLUE,Sims:C.AMBER};
+var CAT_COLORS = {USV:C.TEAL,Contacts:C.BLUE,"Sim/Test":C.AMBER,UGV:C.PINK};
 
 Chart.defaults.color = C.MUTED;
 Chart.defaults.font.family = "'DM Sans', sans-serif";
@@ -727,7 +729,7 @@ function buildSummaryTab(){
   }).join('');
 
   // Category table
-  var catColors={Rampages:C.BLUE,Other:C.AMBER,Sims:C.PINK};
+  var catColors={USV:C.BLUE,Contacts:C.AMBER,"Sim/Test":C.PINK,UGV:C.GREEN};
   var catRows=CATEGORIES.map(function(c){
     var boatsInCat=ALL_BOATS.filter(function(b){return b.category===c.name;});
     var wHrs=boatsInCat.reduce(function(a,b){return a+(b.total_hrs||0);},0);
@@ -798,7 +800,7 @@ function renderSummaryTable(){
   });
 
   var maxTotal=Math.max.apply(null,rows.map(function(r){return r.total_combined;}).concat([1]));
-  var catColors={Rampages:C.BLUE,Other:C.AMBER,Sims:C.PINK};
+  var catColors={USV:C.BLUE,Contacts:C.AMBER,"Sim/Test":C.PINK,UGV:C.GREEN};
 
   document.getElementById('summary-vessel-list').innerHTML=rows.map(function(r){
     var col=catColors[r.category]||C.MUTED;
