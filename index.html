@@ -541,7 +541,7 @@ Chart.defaults.font.family = "'DM Sans', sans-serif";
 // KPI Row
 var totalWaterNM=18644.02, totalMovingNM=15080.26, totalWaterHrs=6460.4, totalMovingHrs=3457.3, totalLandHrs=20634.6, totalAllHrs=9917.7;
 var movingHrs = totalMovingHrs;
-var TELEMETRY_DATAPOINTS = 298000000000; // pulled from Grafana "Vicky / Total Vehicle Datapoints" panel — updated each report run // pulled from Grafana "Vicky / Total Vehicle Datapoints" panel — updated each report run // pulled from Grafana "Vicky / Total Vehicle Datapoints" panel — updated each report run
+var TELEMETRY_DATAPOINTS = 300000000000; // pulled from Grafana "Vicky / Total Vehicle Datapoints" panel — updated each report run // pulled from Grafana "Vicky / Total Vehicle Datapoints" panel — updated each report run // pulled from Grafana "Vicky / Total Vehicle Datapoints" panel — updated each report run
 function fmtDatapoints(n){
   if(n>=1e12) return (n/1e12).toLocaleString(undefined,{maximumFractionDigits:2})+'T';
   if(n>=1e9)  return (n/1e9).toLocaleString(undefined,{maximumFractionDigits:2})+'B';
@@ -2104,4 +2104,16 @@ var PM={
   unitFilter:function(v){UQ=v||'';renderUnitsBody();},
   unitToggle:function(b){UOPEN[b]=!UOPEN[b];renderUnitsBody();},
   unitAll:function(){var vis=boatList(),open=vis.length&&vis.every(function(b){return UOPEN[b];});vis.forEach(function(b){UOPEN[b]=!open;});renderUnitsBody();},
-  unitGo:function(b){UV='boat';UOPEN[b]=t
+  unitGo:function(b){UV='boat';UOPEN[b]=true;setUnitQ(b);renderUnitsBody();},
+  unitSn:function(sn){UV='serial';setUnitQ(sn);renderUnitsBody();},
+  battSort:function(k){if(BS.k===k)BS.dir=-BS.dir;else{BS.k=k;BS.dir=(k==='b'||k==='rest'||k==='vmin')?1:-1;}renderBattFleet();}
+};
+window.PM=PM;
+try{renderOverview();}catch(err){if(window.console)console.error(err);}
+try{renderUnits();}catch(err){if(window.console)console.error(err);}
+})();
+
+</script>
+<!--PM:end script-->
+</body>
+</html>
